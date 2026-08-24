@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="NailManagement.API/NailManagement.API.csproj" />
+  <Project Path="NailManagement.Application/NailManagement.Application.csproj" />
+  <Project Path="NailManagement.Domain/NailManagement.Domain.csproj" />
+  <Project Path="NailManagement.Infrastructure/NailManagement.Infrastructure.csproj" />
+</Solution>
