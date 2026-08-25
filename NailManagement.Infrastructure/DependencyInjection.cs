@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NailManagement.Application.Abstractions;
 using NailManagement.Domain.Repositories;
+using NailManagement.Infrastructure.Auditing;
 using NailManagement.Infrastructure.Persistence;
 using NailManagement.Infrastructure.Persistence.Repositories;
 using NailManagement.Infrastructure.Persistence.Seed;
@@ -51,6 +52,11 @@ public static class DependencyInjection
 
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ISessionRepository, SessionRepository>();
+        services.AddScoped<IUserTenantRepository, UserTenantRepository>();
+        services.AddScoped<ITenantRepository, TenantRepository>();
+        services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+
+        services.AddScoped<IAuditLogger, AuditLogger>();
 
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
         services.AddSingleton<IClock, SystemClock>();

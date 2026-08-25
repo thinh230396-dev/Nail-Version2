@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using NailManagement.API.Common;
+using NailManagement.API.Security;
 using NailManagement.Application;
 using NailManagement.Domain.Common;
 using NailManagement.Infrastructure;
@@ -28,6 +29,9 @@ builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
 
+// Kết quả xác thực của request, do SessionMiddleware ghi vào và mọi tầng sau chỉ đọc.
+builder.Services.AddScoped<RequestScope>();
+
 var app = builder.Build();
 
 // Bộ xử lý lỗi phải đứng đầu chuỗi middleware để bắt được lỗi của mọi tầng phía sau.
@@ -45,6 +49,21 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
+
+// ── Chuỗi kiểm tra quyền — BR-TENANT-013, thứ tự KHÔNG được đảo ───────────────
+// UseRouting() được gọi tường minh để hai middleware bên dưới đọc được thông tin của
+// endpoint sắp chạy; thiếu nó thì phép miễn trừ ở BR-TENANT-011 không tra được.
+//
+//   1. Tiệm còn hạn không?     → TenantWriteGuardMiddleware   (ngay dưới đây)
+//   2. Gói có mở tính năng?    → RequirePermissionAttribute   (bộ lọc trên từng endpoint)
+//   3. Vai trò có quyền?       → RequirePermissionAttribute   (ngay sau bước 2)
+//   4. Dữ liệu thuộc tiệm nào? → bộ lọc toàn cục ở NailDbContext
+app.UseRouting();
+
+// Đọc phiên ở MỖI request — BR-AUTH-022. Phải đứng trước mọi phép kiểm tra quyền, vì
+// chúng đều hỏi "ai đang gọi" và "đang làm việc cho tiệm nào".
+app.UseMiddleware<SessionMiddleware>();
+app.UseMiddleware<TenantWriteGuardMiddleware>();
 
 app.MapControllers();
 

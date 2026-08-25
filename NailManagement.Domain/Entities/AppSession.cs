@@ -72,6 +72,21 @@ public class AppSession
     public void Touch(DateTimeOffset now) => LastActive = now;
 
     /// <summary>
+    /// BR-AUTH-025 — đổi tiệm đang làm việc bằng một thao tác trên PHIÊN, không phải bằng
+    /// cách gửi kèm mã tiệm vào từng request.
+    /// <para>
+    /// BR-AUTH-026 — người gọi bắt buộc phải kiểm tra tài khoản có liên kết với tiệm này
+    /// trong bảng <c>UserTenants</c> TRƯỚC khi gọi. Entity không tự kiểm tra được vì phép
+    /// kiểm tra đó cần đọc bảng khác, mà entity thì không biết tới kho dữ liệu.
+    /// </para>
+    /// </summary>
+    public void SetActiveTenant(string? tenantId, DateTimeOffset now)
+    {
+        ActiveTenantId = string.IsNullOrWhiteSpace(tenantId) ? null : tenantId.Trim();
+        LastActive = now;
+    }
+
+    /// <summary>
     /// Đăng xuất là thu hồi, không xóa bản ghi — nhất quán với BR-DEL-001 (không có gì bị
     /// xóa cứng khỏi database) và giữ lại lịch sử phiên cho màn hình thu hồi phiên về sau.
     /// </summary>

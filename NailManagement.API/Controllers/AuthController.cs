@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using NailManagement.API.Security;
 using NailManagement.Application.DTOs.Auth;
 using NailManagement.Application.UseCases.Auth;
 
@@ -6,6 +7,9 @@ namespace NailManagement.API.Controllers;
 
 /// <summary>Thân request của <c>POST /api/auth/login</c>.</summary>
 public sealed record LoginRequest(string? Identifier, string? Password, bool Remember);
+
+/// <summary>Thân request của <c>POST /api/auth/session/tenant</c> — BR-AUTH-025.</summary>
+public sealed record SelectTenantRequest(string? TenantId);
 
 /// <summary>
 /// Chuyển request HTTP thành lệnh gọi use case, rồi chuyển kết quả thành response.
@@ -19,12 +23,24 @@ public sealed record LoginRequest(string? Identifier, string? Password, bool Rem
 [Route("api/auth")]
 public sealed class AuthController(
     LoginUseCase loginUseCase,
-    GetCurrentAccountUseCase getCurrentAccountUseCase,
-    LogoutUseCase logoutUseCase) : ControllerBase
+    LogoutUseCase logoutUseCase,
+    ListMyTenantsUseCase listMyTenantsUseCase,
+    SelectActiveTenantUseCase selectActiveTenantUseCase,
+    RequestScope requestScope) : ControllerBase
 {
     public const string SessionCookieName = "salonsys_session";
 
+    /// <summary>
+    /// Đăng nhập.
+    /// <para>
+    /// Có <c>AllowWhenTenantReadonly</c> vì một lý do bắt được lúc thử tay: người dùng còn
+    /// cookie của một phiên đang trỏ vào tiệm hết hạn mà bấm đăng nhập lại sẽ bị chính lệnh
+    /// chặn ghi từ chối, và họ mắc kẹt ở màn đăng nhập không hiểu vì sao. Đăng nhập không
+    /// phải thao tác ghi dữ liệu của tiệm nên nó không thuộc phạm vi BR-TENANT-010.
+    /// </para>
+    /// </summary>
     [HttpPost("login")]
+    [AllowWhenTenantReadonly]
     public async Task<IActionResult> Login([FromBody] LoginRequest? request, CancellationToken cancellationToken)
     {
         var result = await loginUseCase.ExecuteAsync(
@@ -38,20 +54,74 @@ public sealed class AuthController(
 
         SetSessionCookie(result.Session.Id, result.Session.MaxAgeSeconds);
 
-        return Ok(new { account = result.Account });
+        return Ok(new { account = result.Account, mustSelectTenant = result.MustSelectTenant });
     }
 
+    /// <summary>
+    /// Trạng thái phiên hiện tại.
+    /// <para>
+    /// Không tự đi đọc phiên nữa: <c>SessionMiddleware</c> đã làm việc đó ở mỗi request và
+    /// đặt kết quả vào <see cref="RequestScope"/>. Gọi lại use case ở đây là chạy hai lần
+    /// cùng một chuỗi truy vấn cho cùng một request.
+    /// </para>
+    /// </summary>
     [HttpGet("session")]
-    public async Task<IActionResult> Session(CancellationToken cancellationToken)
+    [RequireAuth]
+    public IActionResult Session()
     {
-        var result = await getCurrentAccountUseCase.ExecuteAsync(
-            Request.Cookies[SessionCookieName],
+        var current = requestScope.Require();
+
+        return Ok(new
+        {
+            account = current.Account,
+            activeTenantId = current.ActiveTenantId,
+            tenant = current.Tenant,
+            mustSelectTenant = current.MustSelectTenant
+        });
+    }
+
+    /// <summary>BR-AUTH-023 — danh sách tiệm của tài khoản, dữ liệu cho màn chọn tiệm.</summary>
+    [HttpGet("my-tenants")]
+    [RequireAuth]
+    public async Task<IActionResult> MyTenants(CancellationToken cancellationToken)
+    {
+        var current = requestScope.Require();
+        var tenants = await listMyTenantsUseCase.ExecuteAsync(current.Account.Id, cancellationToken);
+
+        return Ok(new { tenants });
+    }
+
+    /// <summary>
+    /// BR-AUTH-025 — đổi tiệm đang làm việc.
+    /// <para>
+    /// Cố ý KHÔNG gắn <c>RequirePermission</c>: đây không phải một thao tác nghiệp vụ trong
+    /// tiệm mà là thao tác trên chính phiên đăng nhập. Hơn nữa nó phải gọi được cả khi tiệm
+    /// đang chọn đã hết hạn — nếu không thì chủ tiệm bị kẹt lại ở một tiệm hết hạn và không
+    /// chuyển sang tiệm khác được.
+    /// </para>
+    /// </summary>
+    [HttpPost("session/tenant")]
+    [RequireAuth]
+    [AllowWhenTenantReadonly]
+    public async Task<IActionResult> SelectTenant(
+        [FromBody] SelectTenantRequest? request, CancellationToken cancellationToken)
+    {
+        var tenant = await selectActiveTenantUseCase.ExecuteAsync(
+            new SelectTenantCommand(requestScope.SessionId, request?.TenantId ?? string.Empty),
             cancellationToken);
 
-        return Ok(new { account = result.Account, activeTenantId = result.ActiveTenantId });
+        return Ok(new { tenant });
     }
 
+    /// <summary>
+    /// Đăng xuất là thu hồi phiên, không xóa bản ghi (BR-DEL-001).
+    /// <para>
+    /// Có <c>AllowWhenTenantReadonly</c> vì lối ra phải luôn mở: tiệm hết hạn mà không đăng
+    /// xuất được thì người dùng mắc kẹt trong phiên của chính mình.
+    /// </para>
+    /// </summary>
     [HttpPost("logout")]
+    [AllowWhenTenantReadonly]
     public async Task<IActionResult> Logout(CancellationToken cancellationToken)
     {
         await logoutUseCase.ExecuteAsync(Request.Cookies[SessionCookieName], cancellationToken);

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using NailManagement.Application.UseCases.Audit;
 using NailManagement.Application.UseCases.Auth;
 
 namespace NailManagement.Application;
@@ -17,6 +18,9 @@ public static class DependencyInjection
         services.AddScoped<LoginUseCase>();
         services.AddScoped<GetCurrentAccountUseCase>();
         services.AddScoped<LogoutUseCase>();
+        services.AddScoped<ListMyTenantsUseCase>();
+        services.AddScoped<SelectActiveTenantUseCase>();
+        services.AddScoped<ListAuditLogsUseCase>();
 
         return services;
     }

@@ -1,29 +1,36 @@
 using NailManagement.Application.Abstractions;
 using NailManagement.Application.Common.Exceptions;
+using NailManagement.Application.DTOs;
 using NailManagement.Application.DTOs.Auth;
 using NailManagement.Application.Mappings;
+using NailManagement.Domain.Enums;
 using NailManagement.Domain.Repositories;
 
 namespace NailManagement.Application.UseCases.Auth;
 
 /// <summary>
-/// Đọc tài khoản của phiên hiện tại.
+/// Đọc tài khoản và phạm vi làm việc của phiên hiện tại.
 /// <para>
 /// <b>BR-AUTH-022 nằm ở đây.</b> Trạng thái tài khoản được kiểm tra lại ở mỗi lần đọc phiên,
 /// không chỉ lúc đăng nhập. Nhờ vậy tài khoản vừa bị chuyển sang Suspended mất quyền ngay ở
 /// request kế tiếp, thay vì dùng tiếp tới khi phiên hết hạn.
 /// </para>
 /// <para>
-/// Từ ngày 3, middleware xác thực sẽ gọi chính use case này, nên đừng nhân bản phép kiểm
-/// tra ở chỗ khác.
+/// Từ ngày 3, middleware xác thực gọi chính use case này ở mỗi request — <b>đừng nhân bản
+/// phép kiểm tra ở chỗ khác</b>. Đó cũng là lý do nó trả về kèm gói tính năng của tiệm:
+/// tầng phân quyền cần dữ liệu đó ngay, và tách ra thành một lượt truy vấn riêng nghĩa là
+/// mỗi lần bấm chuột lại thêm một vòng xuống database.
 /// </para>
 /// </summary>
 public sealed class GetCurrentAccountUseCase(
     IUserRepository users,
     ISessionRepository sessions,
+    IUserTenantRepository userTenants,
+    ITenantRepository tenants,
     IClock clock)
 {
-    public async Task<CurrentAccountResult> ExecuteAsync(string? sessionId, CancellationToken cancellationToken = default)
+    public async Task<CurrentAccountResult> ExecuteAsync(
+        string? sessionId, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(sessionId))
             throw new UnauthenticatedException();
@@ -42,9 +49,58 @@ public sealed class GetCurrentAccountUseCase(
         if (!user.IsActive())
             throw new UnauthenticatedException("Tài khoản đã bị khóa hoặc vô hiệu hóa.");
 
+        var (activeTenantId, scope) =
+            await ResolveTenantScopeAsync(user.Id, session.ActiveTenantId, now, cancellationToken);
+
+        // Phiên trỏ tới một tiệm mà tài khoản không còn quyền: gỡ khỏi phiên ngay, đừng để
+        // lần đọc sau lại đi kiểm tra một mã tiệm đã hết giá trị.
+        if (activeTenantId != session.ActiveTenantId)
+            session.SetActiveTenant(activeTenantId, now);
+
         session.Touch(now);
         await sessions.UpdateAsync(session, cancellationToken);
 
-        return new CurrentAccountResult(AccountMapper.ToDto(user), session.ActiveTenantId);
+        return new CurrentAccountResult(
+            AccountMapper.ToDto(user),
+            user.Role,
+            activeTenantId,
+            scope,
+            MustSelectTenant(user.Role, activeTenantId));
     }
+
+    /// <summary>
+    /// BR-ISO-003 — ba bước, không được rút gọn: lấy tiệm từ phiên, xác nhận tài khoản có
+    /// quyền với tiệm đó qua bảng nối, rồi mới đọc dữ liệu tiệm.
+    /// <para>
+    /// Bước giữa là bước hay bị bỏ nhất, và bỏ nó thì chỉ cần một mã tiệm khác nằm trong
+    /// phiên là đọc được dữ liệu của tiệm không phải của mình.
+    /// </para>
+    /// </summary>
+    private async Task<(string? ActiveTenantId, TenantScopeDto? Scope)> ResolveTenantScopeAsync(
+        string userId, string? sessionTenantId, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(sessionTenantId)) return (null, null);
+
+        var hasAccess = await userTenants.HasAccessAsync(userId, sessionTenantId, cancellationToken);
+        if (!hasAccess) return (null, null);
+
+        // Tiệm đã bị xóa mềm cũng rơi vào nhánh này: tầng lưu trữ không trả về nó nữa
+        // (BR-DEL-002), nên phiên tự động mất tiệm đang làm việc.
+        var tenant = await tenants.FindByIdAsync(sessionTenantId, cancellationToken);
+        if (tenant is null) return (null, null);
+
+        if (tenant.Package is null)
+            throw new InvalidOperationException(
+                $"Tiệm {tenant.Id} không đọc được gói đăng ký. Kho dữ liệu phải trả về tiệm kèm gói.");
+
+        return (tenant.Id, TenantMapper.ToScope(tenant, tenant.Package, now));
+    }
+
+    /// <summary>
+    /// BR-AUTH-025 — chủ tiệm luôn phải qua màn chọn tiệm. Lễ tân được máy chủ đặt sẵn từ
+    /// lúc đăng nhập nên chỉ rơi vào đây khi hồ sơ thiếu liên kết tiệm, và khi đó màn chọn
+    /// tiệm là chỗ duy nhất nói cho họ biết có gì đó chưa đúng.
+    /// </summary>
+    private static bool MustSelectTenant(UserRole role, string? activeTenantId)
+        => role != UserRole.SuperAdmin && activeTenantId is null;
 }
