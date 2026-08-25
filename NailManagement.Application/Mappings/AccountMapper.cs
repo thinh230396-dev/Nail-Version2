@@ -31,10 +31,6 @@ public static class AccountMapper
         Id = user.Id,
         Email = user.Email.Value,
         Role = ToWireFormat(user.Role),
-        DisplayName = user.DisplayName,
-        TenantId = user.TenantId,
-        TenantName = user.TenantName,
-        BranchCode = user.BranchCode,
-        BranchName = user.BranchName
+        DisplayName = user.DisplayName
     };
 }

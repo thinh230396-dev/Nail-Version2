@@ -39,11 +39,16 @@ public sealed record LoginResult(
 /// Rỗng khi phiên chưa gắn tiệm nào: Superadmin (không bao giờ có), hoặc chủ tiệm vừa đăng
 /// nhập mà chưa chọn tiệm.
 /// </param>
+/// <param name="Branch">
+/// Chi nhánh của tài khoản lễ tân, đọc qua hồ sơ nhân viên (BR-EMP-004). Rỗng với Superadmin
+/// và chủ tiệm — hai vai trò đó không gắn hồ sơ nhân viên nên không thuộc chi nhánh nào.
+/// </param>
 public sealed record CurrentAccountResult(
     AccountDto Account,
     UserRole Role,
     string? ActiveTenantId,
     TenantScopeDto? Tenant,
+    BranchScopeDto? Branch,
     bool MustSelectTenant);
 
 /// <summary>Dữ liệu vào của <c>SelectActiveTenantUseCase</c> — BR-AUTH-025.</summary>

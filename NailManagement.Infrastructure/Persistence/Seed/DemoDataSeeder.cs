@@ -47,7 +47,7 @@ public sealed class DemoDataSeeder(NailDbContext db, IPasswordHasher hasher, ICl
         var packages = SeedPackages(now);
         var tenants = SeedTenants(packages, now);
 
-        await SeedTenantAdminAccountsAsync(tenants, now, cancellationToken);
+        await SeedTenantAdminAccountsAsync(now, cancellationToken);
         SeedUserTenantLinks(now);
 
         SeedLumiere(now);
@@ -162,7 +162,7 @@ public sealed class DemoDataSeeder(NailDbContext db, IPasswordHasher hasher, ICl
     /// demo cho BR-AUTH-023 — một người quản lý nhiều tiệm.
     /// </summary>
     private async Task SeedTenantAdminAccountsAsync(
-        Dictionary<string, Tenant> tenants, DateTimeOffset now, CancellationToken cancellationToken)
+        DateTimeOffset now, CancellationToken cancellationToken)
     {
         (string TenantId, string UserId, string Email, string Username, string DisplayName)[] owners =
         [
@@ -187,8 +187,6 @@ public sealed class DemoDataSeeder(NailDbContext db, IPasswordHasher hasher, ICl
                 UserRole.TenantAdmin,
                 owner.DisplayName,
                 now);
-
-            account.AssignLegacyScope(owner.TenantId, tenants[owner.TenantId].Name, null, null);
 
             db.Add(account);
             db.Add(UserTenant.Link(owner.UserId, owner.TenantId, now));

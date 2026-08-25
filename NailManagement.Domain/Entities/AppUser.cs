@@ -63,15 +63,12 @@ public class AppUser
     /// </summary>
     public string? StaffId { get; private set; }
 
-    // ⚠️ BỐN THUỘC TÍNH DƯỚI LÀ TẠM THỜI — sẽ xóa ở ngày 3.
-    // Chúng tồn tại để frontend hiện tại chạy tiếp trong lúc chuyển backend: frontend
-    // đang đọc bốn trường này từ GET /api/auth/session (src/auth/demoAccounts.ts).
-    // Ngày 3 thay bằng bảng nối UserTenants (BR-AUTH-023) + ActiveTenantId trong phiên
-    // (BR-AUTH-024) + chi nhánh đọc qua StaffId (BR-EMP-004).
-    public string? TenantId { get; private set; }
-    public string? TenantName { get; private set; }
-    public string? BranchCode { get; private set; }
-    public string? BranchName { get; private set; }
+    // Bốn cột tạm TenantId / TenantName / BranchCode / BranchName đã được gỡ ở ngày 4.
+    // Chúng từng chép sẵn phạm vi làm việc lên chính bảng tài khoản để frontend cũ chạy
+    // tiếp trong lúc chuyển backend. Nay ba nguồn thật đã thay thế đủ:
+    //   · tiệm quản lý được   → bảng UserTenants          (BR-AUTH-023)
+    //   · tiệm đang làm việc  → ActiveTenantId của phiên  (BR-AUTH-024)
+    //   · chi nhánh           → đọc qua StaffId           (BR-EMP-004)
 
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
@@ -99,15 +96,6 @@ public class AppUser
 
         StaffId = Guard.Reference(staffId, "staffId", "Hồ sơ nhân viên");
         UpdatedAt = now;
-    }
-
-    /// <summary>⚠️ Tạm thời — xóa cùng bốn thuộc tính phạm vi ở ngày 3.</summary>
-    public void AssignLegacyScope(string? tenantId, string? tenantName, string? branchCode, string? branchName)
-    {
-        TenantId = tenantId;
-        TenantName = tenantName;
-        BranchCode = branchCode;
-        BranchName = branchName;
     }
 
     /// <summary>

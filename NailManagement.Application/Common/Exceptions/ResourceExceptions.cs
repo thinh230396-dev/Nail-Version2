@@ -12,3 +12,14 @@ namespace NailManagement.Application.Common.Exceptions;
 /// </summary>
 public sealed class NotFoundException(string? message = null)
     : AppException(ErrorCode.NotFound, message ?? "Không tìm thấy dữ liệu yêu cầu.");
+
+/// <summary>
+/// BR-SUB-005 — vượt một trong hai hạn mức được cưỡng chế thật: số chi nhánh
+/// (BR-BRANCH-005) hoặc số nhân viên (BR-EMP-008).
+/// <para>
+/// Tách khỏi lỗi phân quyền vì đây không phải chuyện "bạn không được phép", mà là chuyện
+/// "gói hiện tại không đủ chỗ". Frontend dựa vào mã lỗi để mời nâng gói thay vì báo lỗi quyền.
+/// </para>
+/// </summary>
+public sealed class LimitExceededException(string message)
+    : AppException(ErrorCode.LimitExceeded, message);

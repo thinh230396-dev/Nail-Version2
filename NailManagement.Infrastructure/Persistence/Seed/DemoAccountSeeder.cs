@@ -22,23 +22,21 @@ public sealed class DemoAccountSeeder(
         string Username,
         string Password,
         UserRole Role,
-        string DisplayName,
-        string? TenantId,
-        string? TenantName,
-        string? BranchCode,
-        string? BranchName);
+        string DisplayName);
 
+    // Phạm vi làm việc của ba tài khoản này KHÔNG nằm ở đây nữa. Từ ngày 4, tiệm quản lý
+    // được nằm ở bảng UserTenants và chi nhánh nằm trên hồ sơ nhân viên — cả hai do
+    // DemoDataSeeder dựng, vì lúc bộ nạp này chạy thì chưa có tiệm nào tồn tại.
     private static readonly Seed[] Accounts =
     [
         new("USR-SUPERADMIN", "superadmin@salonsys.vn", "superadmin", "Super@2026",
-            UserRole.SuperAdmin, "Superadmin", null, null, null, null),
+            UserRole.SuperAdmin, "Superadmin"),
 
         new("USR-TENANT-LUMIERE", "tenantadmin@lumierehair.vn", "nguyenvanboss", "Lumiere@2026",
-            UserRole.TenantAdmin, "Nguyễn Văn Boss", "TEN-LUMIERE", "Nailé Studio", null, null),
+            UserRole.TenantAdmin, "Nguyễn Văn Boss"),
 
         new("USR-RECEPTION-NAILE", "receptionist@nailestudio.vn", "receptionist", "Reception@2026",
-            UserRole.Receptionist, "Lê Hoàng Nam", "TEN-LUMIERE", "Nailé Studio",
-            "Q3", "Nailé Studio · Chi nhánh Quận 3")
+            UserRole.Receptionist, "Lê Hoàng Nam")
     ];
 
     /// <summary>
@@ -67,8 +65,6 @@ public sealed class DemoAccountSeeder(
                 seed.Role,
                 seed.DisplayName,
                 now);
-
-            user.AssignLegacyScope(seed.TenantId, seed.TenantName, seed.BranchCode, seed.BranchName);
 
             await users.AddAsync(user, cancellationToken);
         }

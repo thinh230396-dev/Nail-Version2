@@ -48,11 +48,18 @@ public sealed class ForbiddenException(string? message = null)
 /// hẳn nhau: một bên là "bạn không có quyền", bên kia là "tiệm cần gia hạn thì mới ghi tiếp
 /// được". Frontend dựa vào mã lỗi để hiện lời mời gia hạn thay vì báo lỗi phân quyền.
 /// </para>
+/// <para>
+/// Thông điệp mặc định cố ý KHÔNG nói tiệm bị khóa <i>vì</i> hết hạn. BR-TENANT-010 gộp hai
+/// tình huống khác hẳn nhau vào cùng một chế độ chỉ đọc: quá hạn thanh toán, và bị Superadmin
+/// khóa tay. Câu chữ chỉ nhắc tới gia hạn sẽ đẩy một tiệm đang bị khóa tay đi chuyển khoản,
+/// rồi họ phát hiện số tiền đó không mở lại được gì.
+/// </para>
 /// </summary>
 public sealed class TenantReadonlyException(string? message = null)
     : AppException(
         ErrorCode.TenantReadonly,
-        message ?? "Tiệm đã hết hạn sử dụng nên mọi thay đổi đang tạm khóa. Gia hạn gói để tiếp tục.");
+        message ?? "Tiệm đang ở chế độ chỉ xem nên mọi thay đổi tạm khóa. "
+                 + "Kiểm tra hạn sử dụng và trạng thái tiệm để mở lại.");
 
 /// <summary>
 /// BR-SUB-007 — gói đăng ký hiện tại chưa mở tính năng này.

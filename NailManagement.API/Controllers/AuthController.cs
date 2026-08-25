@@ -76,6 +76,7 @@ public sealed class AuthController(
             account = current.Account,
             activeTenantId = current.ActiveTenantId,
             tenant = current.Tenant,
+            branch = current.Branch,
             mustSelectTenant = current.MustSelectTenant
         });
     }

@@ -1,7 +1,7 @@
-using System.Text.Json;
 using NailManagement.Application.DTOs;
 using NailManagement.Domain.Entities;
 using NailManagement.Domain.Enums;
+using NailManagement.Domain.Repositories;
 
 namespace NailManagement.Application.Mappings;
 
@@ -15,11 +15,6 @@ namespace NailManagement.Application.Mappings;
 /// </summary>
 public static class TenantMapper
 {
-    // Cột JSON viết theo kiểu camelCase của frontend, còn thuộc tính C# viết hoa chữ đầu.
-    // Không bật tùy chọn này thì mọi quyền đều đọc ra false, và hậu quả là mọi tiệm đều
-    // mất sạch tính năng — một lỗi im lặng, không có ngoại lệ nào được ném ra.
-    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNameCaseInsensitive = true };
-
     /// <summary>
     /// Bốn chuỗi trạng thái gửi cho frontend. Frontend đang dùng đúng cách viết này
     /// (<c>Tenant['status']</c> trong <c>src/types.ts</c>), nên không được đổi.
@@ -31,6 +26,14 @@ public static class TenantMapper
         TenantDisplayStatus.Overdue => "OVERDUE",
         TenantDisplayStatus.Suspended => "SUSPENDED",
         _ => throw new ArgumentOutOfRangeException(nameof(status), status, "Trạng thái tiệm không hợp lệ.")
+    };
+
+    public static string ToWireFormat(AccountStatus status) => status switch
+    {
+        AccountStatus.Active => "ACTIVE",
+        AccountStatus.Suspended => "SUSPENDED",
+        AccountStatus.Inactive => "INACTIVE",
+        _ => throw new ArgumentOutOfRangeException(nameof(status), status, "Trạng thái tài khoản không hợp lệ.")
     };
 
     public static TenantSummaryDto ToSummary(Tenant tenant, DateTimeOffset now) => new(
@@ -53,36 +56,66 @@ public static class TenantMapper
         tenant.IsReadOnlyAt(now),
         package.Id,
         package.Name,
-        ReadCapabilities(package));
+        PackageMapper.ReadCapabilities(package));
+
+    /// <param name="usage">
+    /// Số chi nhánh và nhân viên đang hoạt động. Cho phép null vì có đúng một lúc chưa đếm
+    /// tới: ngay sau khi tạo tiệm, khi cả hai con số còn bằng đúng những gì lệnh tạo vừa ghi.
+    /// </param>
+    public static TenantDetailDto ToDetail(
+        Tenant tenant,
+        Package package,
+        TenantUsage? usage,
+        IReadOnlyList<TenantOwnerDto> owners,
+        DateTimeOffset now) => new(
+        tenant.Id,
+        tenant.Code,
+        tenant.Name,
+        ToWireFormat(tenant.DisplayStatusAt(now)),
+        tenant.IsReadOnlyAt(now),
+        tenant.IsTrial,
+        tenant.ExpiresAt,
+        DaysRemaining(tenant.ExpiresAt, now),
+        tenant.Address,
+        tenant.Phone,
+        tenant.ContactEmail,
+        tenant.Timezone,
+        package.Id,
+        package.Name,
+        tenant.SubscriptionPrice,
+        tenant.SubscriptionPackageVersion,
+        PackageMapper.ToWireFormat(tenant.BillingCycle),
+        tenant.SubscriptionStartedAt,
+        package.MaxSalons,
+        package.MaxStaff,
+        usage?.ActiveBranches ?? 0,
+        usage?.ActiveStaff ?? 0,
+        owners,
+        tenant.CreatedAt,
+        tenant.UpdatedAt);
 
     /// <summary>
-    /// Đọc danh sách quyền đang bật từ cột JSON của gói.
+    /// Chủ tiệm hiện trong danh sách của Superadmin.
     /// <para>
-    /// Cột này chép nguyên hình dạng bảng quyền của frontend: một mảng các mục
-    /// <c>{ key, label, enabled }</c>. Ở đây chỉ lấy những mục đang bật, vì phần nhãn chỉ
-    /// phục vụ hiển thị trên bảng giá.
-    /// </para>
-    /// <para>
-    /// JSON hỏng thì trả về danh sách rỗng chứ không ném lỗi: hậu quả là tiệm tạm thời bị
-    /// khóa tính năng — phiền nhưng an toàn. Ném lỗi ở đây sẽ làm sập mọi request của tiệm
-    /// đó, kể cả trang gia hạn gói, tức là khóa luôn đường tự sửa.
+    /// Chỉ năm trường, và không trường nào chạm tới mật khẩu — cùng lý do với
+    /// <see cref="AccountMapper"/>: DTO là hàng rào giữ những cột đó ở lại máy chủ.
     /// </para>
     /// </summary>
-    private static IReadOnlyList<string> ReadCapabilities(Package package)
-    {
-        try
-        {
-            var parsed = JsonSerializer.Deserialize<CapabilityRow[]>(package.CapabilitiesJson, JsonOptions);
+    public static TenantOwnerDto ToOwner(AppUser user) => new(
+        user.Id,
+        user.Email.Value,
+        user.Username,
+        user.DisplayName,
+        ToWireFormat(user.Status));
 
-            return parsed is null
-                ? []
-                : [.. parsed.Where(row => row.Enabled).Select(row => row.Key)];
-        }
-        catch (JsonException)
-        {
-            return [];
-        }
-    }
-
-    private sealed record CapabilityRow(string Key, bool Enabled);
+    /// <summary>
+    /// Số ngày còn lại, làm tròn xuống.
+    /// <para>
+    /// Làm tròn xuống chứ không lên là có chủ đích: tiệm hết hạn sau 12 giờ nữa phải đọc ra
+    /// 0 — "hết hạn hôm nay" — chứ không phải 1. Và tiệm đã quá hạn cho ra số âm, để màn
+    /// hình nói được "quá hạn 3 ngày" thay vì im lặng hiển thị số 0 như thể vẫn còn kịp.
+    /// </para>
+    /// </summary>
+    private static int DaysRemaining(DateTimeOffset expiresAt, DateTimeOffset now)
+        => (int)Math.Floor((expiresAt - now).TotalDays);
 }

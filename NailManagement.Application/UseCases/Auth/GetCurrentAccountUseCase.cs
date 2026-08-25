@@ -27,6 +27,7 @@ public sealed class GetCurrentAccountUseCase(
     ISessionRepository sessions,
     IUserTenantRepository userTenants,
     ITenantRepository tenants,
+    IStaffRepository staffMembers,
     IClock clock)
 {
     public async Task<CurrentAccountResult> ExecuteAsync(
@@ -60,12 +61,36 @@ public sealed class GetCurrentAccountUseCase(
         session.Touch(now);
         await sessions.UpdateAsync(session, cancellationToken);
 
+        var branch = await ResolveBranchAsync(user.StaffId, activeTenantId, cancellationToken);
+
         return new CurrentAccountResult(
             AccountMapper.ToDto(user),
             user.Role,
             activeTenantId,
             scope,
+            branch,
             MustSelectTenant(user.Role, activeTenantId));
+    }
+
+    /// <summary>
+    /// BR-EMP-004 — chi nhánh của tài khoản đọc qua hồ sơ nhân viên, không phải qua một cột
+    /// chép sẵn trên bảng tài khoản. Hai bản sao của cùng một thông tin là hai chỗ để lệch
+    /// nhau khi nhân viên chuyển chi nhánh.
+    /// </summary>
+    private async Task<BranchScopeDto?> ResolveBranchAsync(
+        string? staffId, string? activeTenantId, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(staffId) || activeTenantId is null) return null;
+
+        var staff = await staffMembers.FindForSessionAsync(staffId, cancellationToken);
+        if (staff?.Branch is null) return null;
+
+        // Phép đối chiếu BẮT BUỘC: hàm trên cố ý bỏ qua bộ lọc theo tiệm vì nó chạy trong
+        // lúc phiên còn đang dựng. Không có dòng này thì một hồ sơ nhân viên của tiệm khác
+        // sẽ lọt vào phiên, và tên chi nhánh của tiệm khác hiện lên đầu màn hình.
+        if (staff.TenantId != activeTenantId) return null;
+
+        return new BranchScopeDto(staff.Branch.Id, staff.Branch.Code, staff.Branch.Name);
     }
 
     /// <summary>

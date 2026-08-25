@@ -58,12 +58,6 @@ public sealed class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
             .HasForeignKey(u => u.StaffId)
             .OnDelete(DeleteBehavior.NoAction);
 
-        // ⚠️ Bốn cột tạm — xóa ở ngày 3 cùng với các thuộc tính tương ứng trên entity.
-        builder.Property(u => u.TenantId).HasMaxLength(64);
-        builder.Property(u => u.TenantName).HasMaxLength(200);
-        builder.Property(u => u.BranchCode).HasMaxLength(32);
-        builder.Property(u => u.BranchName).HasMaxLength(200);
-
         builder.Property(u => u.CreatedAt).IsRequired();
         builder.Property(u => u.UpdatedAt).IsRequired();
 

@@ -54,11 +54,21 @@ public static class DependencyInjection
         services.AddScoped<ISessionRepository, SessionRepository>();
         services.AddScoped<IUserTenantRepository, UserTenantRepository>();
         services.AddScoped<ITenantRepository, TenantRepository>();
+        services.AddScoped<IBranchRepository, BranchRepository>();
+        services.AddScoped<IPackageRepository, PackageRepository>();
+        services.AddScoped<ISubscriptionInvoiceRepository, SubscriptionInvoiceRepository>();
+        services.AddScoped<IStaffRepository, StaffRepository>();
         services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 
         services.AddScoped<IAuditLogger, AuditLogger>();
 
+        // Ranh giới giao dịch. Theo vòng đời request vì nó bọc quanh chính DbContext của
+        // request đó; một bản dùng chung sẽ mở giao dịch trên một kết nối khác với kết nối
+        // mà các repository đang ghi, và khi đó nó không gom được gì cả.
+        services.AddScoped<IUnitOfWork, EfUnitOfWork>();
+
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
+        services.AddSingleton<IPasswordGenerator, RandomPasswordGenerator>();
         services.AddSingleton<IClock, SystemClock>();
         services.AddSingleton<IIdGenerator, GuidIdGenerator>();
 
