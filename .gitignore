@@ -208,6 +208,13 @@ PublishScripts/
 **/[Pp]ackages/*
 # except build/, which is used as an MSBuild target.
 !**/[Pp]ackages/build/
+
+# … và trừ lát cắt use case tên Packages của tầng Application. Quy tắc
+# **/[Pp]ackages/* ở trên sinh ra cho thư mục gói NuGet, nhưng nó khớp luôn
+# NailManagement.Application/UseCases/Packages/ — nơi chứa mã nguồn thật.
+# Không có dòng dưới đây thì ListPackagesUseCase.cs không nằm trong repo, và
+# một lần git clone sạch sẽ không build được.
+!NailManagement.Application/UseCases/Packages/*
 # Uncomment if necessary however generally it will be regenerated when needed
 #!**/[Pp]ackages/repositories.config
 # NuGet v3's project.json files produces more ignorable files
