@@ -4,6 +4,8 @@ using NailManagement.Application.UseCases.Audit;
 using NailManagement.Application.UseCases.Auth;
 using NailManagement.Application.UseCases.Branches;
 using NailManagement.Application.UseCases.Packages;
+using NailManagement.Application.UseCases.Services;
+using NailManagement.Application.UseCases.Staff;
 using NailManagement.Application.UseCases.Tenants;
 
 namespace NailManagement.Application;
@@ -43,6 +45,22 @@ public static class DependencyInjection
         services.AddScoped<CreateBranchUseCase>();
         services.AddScoped<UpdateBranchUseCase>();
         services.AddScoped<ChangeBranchStatusUseCase>();
+
+        // ── Nghiệp vụ tiệm: dịch vụ ───────────────────────────────────────────
+        services.AddScoped<ListServicesUseCase>();
+        services.AddScoped<CreateServiceUseCase>();
+        services.AddScoped<UpdateServiceUseCase>();
+        services.AddScoped<ChangeServiceStatusUseCase>();
+
+        // ── Nghiệp vụ tiệm: nhân viên ─────────────────────────────────────────
+        // StaffQuotaGuard không phải use case; nó là phép đếm hạn mức dùng chung cho hai
+        // đường vào (thêm mới và nhận lại người cũ) nên đăng ký cạnh chúng.
+        services.AddScoped<StaffQuotaGuard>();
+        services.AddScoped<ListStaffUseCase>();
+        services.AddScoped<CreateStaffUseCase>();
+        services.AddScoped<UpdateStaffUseCase>();
+        services.AddScoped<ChangeStaffStatusUseCase>();
+        services.AddScoped<GrantStaffAccountUseCase>();
 
         // ── Hệ thống ──────────────────────────────────────────────────────────
         services.AddScoped<ListAuditLogsUseCase>();

@@ -43,4 +43,30 @@ public interface IUserRepository
     /// </para>
     /// </summary>
     Task<IReadOnlyList<AppUser>> ListByRoleAsync(UserRole role, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Tài khoản đăng nhập gắn với từng hồ sơ nhân viên, tra một lượt cho cả danh sách.
+    /// <para>
+    /// Màn quản lý nhân viên phải biết hồ sơ nào đã có tài khoản thì mới quyết định được
+    /// nút "Cấp tài khoản đăng nhập" hiện ở dòng nào (BR-AUTH-013). Hỏi lẻ từng hồ sơ là
+    /// mỗi lần mở màn hình lại tốn đúng bằng số nhân viên lượt truy vấn.
+    /// </para>
+    /// <para>
+    /// Khóa của kết quả là <c>StaffId</c>, và hồ sơ chưa có tài khoản thì <b>vắng mặt</b>
+    /// thay vì có mặt với giá trị rỗng — giống cách <c>IUserTenantRepository</c> làm, để
+    /// hai kho dữ liệu không có hai quy ước đọc khác nhau.
+    /// </para>
+    /// </summary>
+    Task<IReadOnlyDictionary<string, AppUser>> ListByStaffIdsAsync(
+        IReadOnlyCollection<string> staffIds, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Tài khoản đăng nhập của đúng một hồ sơ nhân viên, hoặc null khi hồ sơ đó chưa được cấp.
+    /// <para>
+    /// Đi cùng <see cref="ListByStaffIdsAsync"/> chứ không thay thế nó: màn danh sách hỏi
+    /// một lượt cho tất cả, còn các lệnh ghi chỉ hỏi về đúng hồ sơ đang sửa. Ép lệnh ghi
+    /// dùng hàm danh sách là bắt nó dựng một tập hợp một phần tử rồi lại mở ra.
+    /// </para>
+    /// </summary>
+    Task<AppUser?> FindByStaffIdAsync(string staffId, CancellationToken cancellationToken = default);
 }

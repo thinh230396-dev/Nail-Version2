@@ -202,12 +202,5 @@ public sealed class TenantsController(
     /// Nhận từ thân request thì bản ghi nhật ký chỉ là lời khai của trình duyệt.
     /// </summary>
     private ActorContext Actor()
-    {
-        var current = requestScope.Require();
-
-        return new ActorContext(
-            current.Account.Id,
-            current.Role,
-            HttpContext.Connection.RemoteIpAddress?.ToString());
-    }
+        => requestScope.ToActor(HttpContext.Connection.RemoteIpAddress?.ToString());
 }

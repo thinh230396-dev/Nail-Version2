@@ -152,6 +152,21 @@ public class Staff : ITenantOwned
         UpdatedAt = now;
     }
 
+    /// <summary>
+    /// BR-EMP-002 — đổi vai trò nghiệp vụ giữa kỹ thuật viên và lễ tân.
+    /// <para>
+    /// Entity cố ý KHÔNG tự chặn gì ở đây, khác với <c>Branch.Deactivate</c>. Điều kiện thật
+    /// sự — hồ sơ đang có tài khoản đăng nhập thì không đổi được — nằm ở bảng tài khoản chứ
+    /// không nằm trong chính hồ sơ này, nên hồ sơ không có cách nào tự biết. Phép chặn đó
+    /// đặt ở <c>UpdateStaffUseCase</c>, chỗ duy nhất nhìn thấy cả hai bảng.
+    /// </para>
+    /// </summary>
+    public void ChangeRole(StaffRole role, DateTimeOffset now)
+    {
+        Role = role;
+        UpdatedAt = now;
+    }
+
     public void ChangeStatus(StaffStatus status, DateTimeOffset now)
     {
         Status = status;

@@ -59,4 +59,33 @@ public sealed class UserRepository(NailDbContext db) : IUserRepository
             .Where(user => user.Role == role)
             .OrderBy(user => user.DisplayName)
             .ToListAsync(cancellationToken);
+
+    /// <summary>
+    /// Tài khoản đăng nhập của một loạt hồ sơ nhân viên, tra một lượt.
+    /// <para>
+    /// Bảng tài khoản KHÔNG mang <c>ITenantOwned</c> nên không có bộ lọc theo tiệm ở đây.
+    /// Phép cách ly đến từ chính danh sách mã hồ sơ mà người gọi truyền vào: use case đã lấy
+    /// chúng từ kho dữ liệu nhân viên, tức đã đi qua bộ lọc theo tiệm rồi.
+    /// </para>
+    /// </summary>
+    public async Task<IReadOnlyDictionary<string, AppUser>> ListByStaffIdsAsync(
+        IReadOnlyCollection<string> staffIds, CancellationToken cancellationToken = default)
+    {
+        if (staffIds.Count == 0) return new Dictionary<string, AppUser>();
+
+        var ids = staffIds.ToArray();
+
+        var accounts = await db.AppUsers
+            .Where(user => user.StaffId != null && ids.Contains(user.StaffId))
+            .ToListAsync(cancellationToken);
+
+        // Mỗi hồ sơ nhiều nhất một tài khoản (BR-AUTH-013), nên gom thẳng thành từ điển
+        // được. Nếu dữ liệu lỗi có hai tài khoản cùng trỏ một hồ sơ thì ToDictionary sẽ ném
+        // lỗi ngay tại đây — đó là điều mong muốn, im lặng chọn một cái mới là tệ.
+        return accounts.ToDictionary(user => user.StaffId!);
+    }
+
+    public async Task<AppUser?> FindByStaffIdAsync(
+        string staffId, CancellationToken cancellationToken = default)
+        => await db.AppUsers.FirstOrDefaultAsync(user => user.StaffId == staffId, cancellationToken);
 }

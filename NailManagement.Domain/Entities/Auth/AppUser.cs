@@ -109,6 +109,25 @@ public class AppUser
     public bool IsLockedAt(DateTimeOffset now) => LockedUntil is not null && LockedUntil > now;
 
     /// <summary>
+    /// BR-AUTH-020 / BR-DEL-001 — "xóa tài khoản" là vô hiệu hóa vĩnh viễn, không xóa bản ghi.
+    /// <para>
+    /// Đường gọi duy nhất hiện nay là lúc hồ sơ nhân viên chuyển sang nghỉ việc: BR-EMP-006
+    /// giữ lại hồ sơ để tên người đó vẫn hiện đúng trong lịch hẹn và hóa đơn cũ, nhưng một
+    /// lễ tân đã nghỉ mà vẫn đăng nhập được vào quầy thu tiền thì là lỗ hổng. Nhờ BR-AUTH-022,
+    /// phiên đang mở của họ chết ngay ở request kế tiếp chứ không đợi hết hạn.
+    /// </para>
+    /// <para>
+    /// Cố ý KHÔNG có hàm ngược lại. Bật lại hồ sơ nhân viên là chuyện nhân sự; cấp lại quyền
+    /// đăng nhập là một quyết định riêng và phải được bấm riêng.
+    /// </para>
+    /// </summary>
+    public void Deactivate(DateTimeOffset now)
+    {
+        Status = AccountStatus.Inactive;
+        UpdatedAt = now;
+    }
+
+    /// <summary>
     /// Ghi nhận một lần nhập sai. Chạm ngưỡng thì khóa tạm và đặt lại bộ đếm về 0, để sau
     /// khi hết hạn khóa người dùng lại có đủ số lần thử.
     /// </summary>

@@ -45,4 +45,20 @@ public sealed class RequestScope
     }
 
     public void Reject(AppException reason) => Rejection = reason;
+
+    /// <summary>
+    /// Người đang thực hiện request, dựng từ phiên đăng nhập chứ không từ thân request —
+    /// BR-AUD-003. Nhận từ thân request thì bản ghi nhật ký chỉ là lời khai của trình duyệt.
+    /// <para>
+    /// Gom về đây thay vì để mỗi controller tự dựng: chi nhánh của người thao tác là thứ
+    /// <c>ListStaffUseCase</c> dùng để thu hẹp phạm vi theo ma trận mục 3.4, và một
+    /// controller quên gắn nó vào sẽ lặng lẽ cho lễ tân xem cả tiệm.
+    /// </para>
+    /// </summary>
+    public ActorContext ToActor(string? ip)
+    {
+        var current = Require();
+
+        return new ActorContext(current.Account.Id, current.Role, ip, current.Branch?.Id);
+    }
 }
