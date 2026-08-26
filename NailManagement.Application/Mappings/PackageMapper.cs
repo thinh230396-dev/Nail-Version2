@@ -1,7 +1,7 @@
 using System.Text.Json;
 using NailManagement.Application.DTOs;
-using NailManagement.Domain.Entities;
-using NailManagement.Domain.Enums;
+using NailManagement.Domain.Entities.Platform;
+using NailManagement.Domain.Enums.Platform;
 
 namespace NailManagement.Application.Mappings;
 

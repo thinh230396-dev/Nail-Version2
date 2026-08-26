@@ -1,4 +1,5 @@
-using NailManagement.Domain.Entities;
+using NailManagement.Domain.Entities.Auth;
+using NailManagement.Domain.Enums.Auth;
 
 namespace NailManagement.Domain.Repositories;
 
@@ -27,4 +28,19 @@ public interface IUserRepository
     Task UpdateAsync(AppUser user, CancellationToken cancellationToken = default);
 
     Task<int> CountAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Mọi tài khoản của một vai trò, sắp theo tên hiển thị.
+    /// <para>
+    /// Có mặt vì BR-TENANT-004 cho phép Superadmin giao tiệm mới cho một tài khoản chủ tiệm
+    /// <b>đã có</b>. Không có danh sách này thì giao diện chỉ còn đường tạo tài khoản mới,
+    /// và khả năng một người quản nhiều tiệm (BR-AUTH-023) không có lối vào nào.
+    /// </para>
+    /// <para>
+    /// Tài khoản đã khóa hoặc đã vô hiệu vẫn nằm trong kết quả: màn quản lý tài khoản phải
+    /// nhìn thấy chúng, vì BR-DEL-001 không xóa cứng gì cả. Việc loại tài khoản không đủ
+    /// điều kiện ra khỏi ô chọn chủ tiệm là quyết định của tầng gọi, không phải của kho dữ liệu.
+    /// </para>
+    /// </summary>
+    Task<IReadOnlyList<AppUser>> ListByRoleAsync(UserRole role, CancellationToken cancellationToken = default);
 }

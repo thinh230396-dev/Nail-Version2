@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using NailManagement.Domain.Entities;
+using NailManagement.Domain.Entities.Auth;
+using NailManagement.Domain.Enums.Auth;
 using NailManagement.Domain.Repositories;
 
 namespace NailManagement.Infrastructure.Persistence.Repositories;
@@ -32,7 +33,12 @@ public sealed class UserTenantRepository(NailDbContext db) : IUserTenantReposito
         if (tenantIds.Count == 0) return new Dictionary<string, IReadOnlyList<AppUser>>();
 
         var rows = await db.UserTenants
-            .Where(link => tenantIds.Contains(link.TenantId))
+            // CHỈ tài khoản chủ tiệm. Bảng nối này còn mang cả lễ tân — họ cũng cần một tiệm
+            // để làm việc — nên thiếu điều kiện lọc theo vai trò thì màn quản lý tiệm sẽ trưng
+            // một lễ tân ra ở cột "Chủ tiệm chính", và tệ hơn: người được giao sớm nhất là lễ
+            // tân, nên chính họ đứng đầu danh sách.
+            .Where(link => tenantIds.Contains(link.TenantId)
+                           && link.User!.Role == UserRole.TenantAdmin)
             .Include(link => link.User)
             // Người được giao sớm nhất đứng đầu, nên "chủ tiệm chính" mà màn hình hiển thị
             // luôn là cùng một người ở mọi lần tải, không đổi theo thứ tự database trả về.
@@ -45,6 +51,35 @@ public sealed class UserTenantRepository(NailDbContext db) : IUserTenantReposito
             .ToDictionary(
                 group => group.Key,
                 group => (IReadOnlyList<AppUser>)[.. group.Select(link => link.User!)]);
+    }
+
+    /// <summary>
+    /// Chỉ đọc cột <c>TenantId</c> chứ không nạp kèm thực thể tiệm.
+    /// <para>
+    /// Cố ý như vậy: bảng này không mang bộ lọc theo tiệm, nhưng bảng <c>Tenants</c> thì có
+    /// bộ lọc xóa mềm. Nạp kèm thực thể tiệm ở đây sẽ khiến liên kết trỏ tới một tiệm đã xóa
+    /// bị lặng lẽ bỏ qua hoặc trả về <c>null</c>, tùy cách EF Core dịch câu truy vấn — hai
+    /// hành vi khác nhau cho cùng một dữ liệu. Đọc thẳng cột thì không có chỗ cho sự mập mờ
+    /// đó, và trên thực tế liên kết mồ côi không tồn tại vì
+    /// <see cref="UnlinkAllAsync"/> gỡ hết lúc xóa tiệm (BR-TENANT-021).
+    /// </para>
+    /// </summary>
+    public async Task<IReadOnlyDictionary<string, IReadOnlyList<string>>> ListTenantIdsByUserAsync(
+        IReadOnlyCollection<string> userIds, CancellationToken cancellationToken = default)
+    {
+        if (userIds.Count == 0) return new Dictionary<string, IReadOnlyList<string>>();
+
+        var rows = await db.UserTenants
+            .Where(link => userIds.Contains(link.UserId))
+            .OrderBy(link => link.CreatedAt)
+            .Select(link => new { link.UserId, link.TenantId })
+            .ToListAsync(cancellationToken);
+
+        return rows
+            .GroupBy(row => row.UserId)
+            .ToDictionary(
+                group => group.Key,
+                group => (IReadOnlyList<string>)[.. group.Select(row => row.TenantId)]);
     }
 
     public async Task LinkAsync(

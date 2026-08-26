@@ -22,3 +22,26 @@ public sealed record AccountDto
     public required string Role { get; init; }
     public required string DisplayName { get; init; }
 }
+
+/// <summary>
+/// Một tài khoản chủ tiệm trong màn quản lý tài khoản của Superadmin, và trong ô chọn chủ
+/// tiệm ở form tạo tiệm (BR-TENANT-004, <c>owner.mode = "existing"</c>).
+/// <para>
+/// Khác <see cref="AccountDto"/> ở chỗ nó mang thêm <paramref name="TenantIds"/> — thứ mà
+/// DTO phiên đăng nhập cố ý không có, vì phiên chỉ quan tâm tới <b>một</b> tiệm đang làm
+/// việc. Ở đây thì ngược lại: câu hỏi chính là "người này đang giữ mấy tiệm".
+/// </para>
+/// <para>
+/// Trả về mã tiệm chứ không trả tên tiệm. Màn hình nào cần tên thì đã có sẵn danh sách tiệm
+/// từ <c>GET /api/tenants</c> để ghép — gửi kèm tên ở đây là chép cùng một sự thật ra hai
+/// chỗ, rồi có ngày hai chỗ lệch nhau sau một lần đổi tên tiệm.
+/// </para>
+/// </summary>
+public sealed record TenantAdminAccountDto(
+    string Id,
+    string Email,
+    string? Username,
+    string DisplayName,
+    string Status,
+    DateTimeOffset CreatedAt,
+    IReadOnlyList<string> TenantIds);

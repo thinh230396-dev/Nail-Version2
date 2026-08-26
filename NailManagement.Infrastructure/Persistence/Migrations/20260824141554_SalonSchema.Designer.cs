@@ -25,7 +25,7 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.AppSession", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Auth.AppSession", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(64)
@@ -71,7 +71,7 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.ToTable("AppSessions", (string)null);
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.AppUser", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Auth.AppUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(64)
@@ -159,7 +159,7 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.ToTable("AppUsers", (string)null);
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.Appointment", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Salon.Appointment", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(64)
@@ -238,7 +238,7 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.ToTable("Appointments", (string)null);
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.AppointmentService", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Salon.AppointmentService", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(64)
@@ -281,7 +281,7 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.ToTable("AppointmentServices", (string)null);
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.AuditLog", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Auditing.AuditLog", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(64)
@@ -334,7 +334,7 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.ToTable("AuditLogs", (string)null);
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.Branch", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Salon.Branch", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(64)
@@ -386,7 +386,7 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.ToTable("Branches", (string)null);
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.Customer", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Salon.Customer", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(64)
@@ -438,7 +438,7 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.ToTable("Customers", (string)null);
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.InvoiceCounter", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Salon.InvoiceCounter", b =>
                 {
                     b.Property<string>("TenantId")
                         .HasMaxLength(64)
@@ -455,7 +455,7 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.ToTable("InvoiceCounters", (string)null);
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.InvoicePayment", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Salon.InvoicePayment", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(64)
@@ -508,7 +508,7 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.ToTable("InvoicePayments", (string)null);
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.Package", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Platform.Package", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(64)
@@ -577,7 +577,7 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.ToTable("Packages", (string)null);
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.PackageUpgradeRequest", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Platform.PackageUpgradeRequest", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(64)
@@ -673,7 +673,7 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.ToTable("PackageUpgradeRequests", (string)null);
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.SalesInvoice", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Salon.SalesInvoice", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(64)
@@ -766,7 +766,7 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.ToTable("SalesInvoices", (string)null);
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.SalesInvoiceLine", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Salon.SalesInvoiceLine", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(64)
@@ -810,7 +810,7 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.ToTable("SalesInvoiceLines", (string)null);
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.Service", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Salon.Service", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(64)
@@ -864,7 +864,7 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.ToTable("Services", (string)null);
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.Staff", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Salon.Staff", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(64)
@@ -932,7 +932,7 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.ToTable("Staff", (string)null);
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.SubscriptionInvoice", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Platform.SubscriptionInvoice", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(64)
@@ -1026,7 +1026,7 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.ToTable("SubscriptionInvoices", (string)null);
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.Tenant", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Platform.Tenant", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(64)
@@ -1112,7 +1112,7 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.ToTable("Tenants", (string)null);
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.UserTenant", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Auth.UserTenant", b =>
                 {
                     b.Property<string>("UserId")
                         .HasMaxLength(64)
@@ -1132,14 +1132,14 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.ToTable("UserTenants", (string)null);
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.AppSession", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Auth.AppSession", b =>
                 {
-                    b.HasOne("NailManagement.Domain.Entities.Tenant", null)
+                    b.HasOne("NailManagement.Domain.Entities.Platform.Tenant", null)
                         .WithMany()
                         .HasForeignKey("ActiveTenantId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("NailManagement.Domain.Entities.AppUser", "User")
+                    b.HasOne("NailManagement.Domain.Entities.Auth.AppUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1148,35 +1148,35 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.AppUser", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Auth.AppUser", b =>
                 {
-                    b.HasOne("NailManagement.Domain.Entities.Staff", null)
+                    b.HasOne("NailManagement.Domain.Entities.Salon.Staff", null)
                         .WithMany()
                         .HasForeignKey("StaffId")
                         .OnDelete(DeleteBehavior.NoAction);
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.Appointment", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Salon.Appointment", b =>
                 {
-                    b.HasOne("NailManagement.Domain.Entities.Branch", "Branch")
+                    b.HasOne("NailManagement.Domain.Entities.Salon.Branch", "Branch")
                         .WithMany()
                         .HasForeignKey("BranchId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("NailManagement.Domain.Entities.Customer", "Customer")
+                    b.HasOne("NailManagement.Domain.Entities.Salon.Customer", "Customer")
                         .WithMany()
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("NailManagement.Domain.Entities.Staff", "Staff")
+                    b.HasOne("NailManagement.Domain.Entities.Salon.Staff", "Staff")
                         .WithMany()
                         .HasForeignKey("StaffId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("NailManagement.Domain.Entities.Tenant", null)
+                    b.HasOne("NailManagement.Domain.Entities.Platform.Tenant", null)
                         .WithMany()
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -1189,15 +1189,15 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.Navigation("Staff");
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.AppointmentService", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Salon.AppointmentService", b =>
                 {
-                    b.HasOne("NailManagement.Domain.Entities.Appointment", "Appointment")
+                    b.HasOne("NailManagement.Domain.Entities.Salon.Appointment", "Appointment")
                         .WithMany("Services")
                         .HasForeignKey("AppointmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("NailManagement.Domain.Entities.Service", "Service")
+                    b.HasOne("NailManagement.Domain.Entities.Salon.Service", "Service")
                         .WithMany()
                         .HasForeignKey("ServiceId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -1208,9 +1208,9 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.Navigation("Service");
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.Branch", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Salon.Branch", b =>
                 {
-                    b.HasOne("NailManagement.Domain.Entities.Tenant", "Tenant")
+                    b.HasOne("NailManagement.Domain.Entities.Platform.Tenant", "Tenant")
                         .WithMany()
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -1219,9 +1219,9 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.Navigation("Tenant");
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.Customer", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Salon.Customer", b =>
                 {
-                    b.HasOne("NailManagement.Domain.Entities.Tenant", "Tenant")
+                    b.HasOne("NailManagement.Domain.Entities.Platform.Tenant", "Tenant")
                         .WithMany()
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -1230,9 +1230,9 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.Navigation("Tenant");
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.InvoicePayment", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Salon.InvoicePayment", b =>
                 {
-                    b.HasOne("NailManagement.Domain.Entities.SalesInvoice", "Invoice")
+                    b.HasOne("NailManagement.Domain.Entities.Salon.SalesInvoice", "Invoice")
                         .WithMany("Payments")
                         .HasForeignKey("InvoiceId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1241,9 +1241,9 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.Navigation("Invoice");
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.PackageUpgradeRequest", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Platform.PackageUpgradeRequest", b =>
                 {
-                    b.HasOne("NailManagement.Domain.Entities.Tenant", "Tenant")
+                    b.HasOne("NailManagement.Domain.Entities.Platform.Tenant", "Tenant")
                         .WithMany()
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -1252,31 +1252,31 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.Navigation("Tenant");
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.SalesInvoice", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Salon.SalesInvoice", b =>
                 {
-                    b.HasOne("NailManagement.Domain.Entities.Appointment", "Appointment")
+                    b.HasOne("NailManagement.Domain.Entities.Salon.Appointment", "Appointment")
                         .WithMany()
                         .HasForeignKey("AppointmentId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("NailManagement.Domain.Entities.Branch", "Branch")
+                    b.HasOne("NailManagement.Domain.Entities.Salon.Branch", "Branch")
                         .WithMany()
                         .HasForeignKey("BranchId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("NailManagement.Domain.Entities.Customer", "Customer")
+                    b.HasOne("NailManagement.Domain.Entities.Salon.Customer", "Customer")
                         .WithMany()
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("NailManagement.Domain.Entities.Staff", "Staff")
+                    b.HasOne("NailManagement.Domain.Entities.Salon.Staff", "Staff")
                         .WithMany()
                         .HasForeignKey("StaffId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("NailManagement.Domain.Entities.Tenant", null)
+                    b.HasOne("NailManagement.Domain.Entities.Platform.Tenant", null)
                         .WithMany()
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -1291,15 +1291,15 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.Navigation("Staff");
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.SalesInvoiceLine", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Salon.SalesInvoiceLine", b =>
                 {
-                    b.HasOne("NailManagement.Domain.Entities.SalesInvoice", "Invoice")
+                    b.HasOne("NailManagement.Domain.Entities.Salon.SalesInvoice", "Invoice")
                         .WithMany("Lines")
                         .HasForeignKey("InvoiceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("NailManagement.Domain.Entities.Service", "Service")
+                    b.HasOne("NailManagement.Domain.Entities.Salon.Service", "Service")
                         .WithMany()
                         .HasForeignKey("ServiceId")
                         .OnDelete(DeleteBehavior.NoAction);
@@ -1309,9 +1309,9 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.Navigation("Service");
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.Service", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Salon.Service", b =>
                 {
-                    b.HasOne("NailManagement.Domain.Entities.Tenant", "Tenant")
+                    b.HasOne("NailManagement.Domain.Entities.Platform.Tenant", "Tenant")
                         .WithMany()
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -1320,15 +1320,15 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.Navigation("Tenant");
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.Staff", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Salon.Staff", b =>
                 {
-                    b.HasOne("NailManagement.Domain.Entities.Branch", "Branch")
+                    b.HasOne("NailManagement.Domain.Entities.Salon.Branch", "Branch")
                         .WithMany()
                         .HasForeignKey("BranchId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("NailManagement.Domain.Entities.Tenant", null)
+                    b.HasOne("NailManagement.Domain.Entities.Platform.Tenant", null)
                         .WithMany()
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -1337,9 +1337,9 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.Navigation("Branch");
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.SubscriptionInvoice", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Platform.SubscriptionInvoice", b =>
                 {
-                    b.HasOne("NailManagement.Domain.Entities.Tenant", "Tenant")
+                    b.HasOne("NailManagement.Domain.Entities.Platform.Tenant", "Tenant")
                         .WithMany()
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -1348,9 +1348,9 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.Navigation("Tenant");
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.Tenant", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Platform.Tenant", b =>
                 {
-                    b.HasOne("NailManagement.Domain.Entities.Package", "Package")
+                    b.HasOne("NailManagement.Domain.Entities.Platform.Package", "Package")
                         .WithMany()
                         .HasForeignKey("PackageId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -1359,15 +1359,15 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.Navigation("Package");
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.UserTenant", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Auth.UserTenant", b =>
                 {
-                    b.HasOne("NailManagement.Domain.Entities.Tenant", "Tenant")
+                    b.HasOne("NailManagement.Domain.Entities.Platform.Tenant", "Tenant")
                         .WithMany()
                         .HasForeignKey("TenantId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("NailManagement.Domain.Entities.AppUser", "User")
+                    b.HasOne("NailManagement.Domain.Entities.Auth.AppUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1378,12 +1378,12 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.Appointment", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Salon.Appointment", b =>
                 {
                     b.Navigation("Services");
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.SalesInvoice", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Salon.SalesInvoice", b =>
                 {
                     b.Navigation("Lines");
 

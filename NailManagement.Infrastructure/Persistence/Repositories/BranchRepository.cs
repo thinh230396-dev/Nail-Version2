@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using NailManagement.Domain.Entities;
-using NailManagement.Domain.Enums;
+using NailManagement.Domain.Entities.Salon;
+using NailManagement.Domain.Enums.Salon;
 using NailManagement.Domain.Repositories;
 
 namespace NailManagement.Infrastructure.Persistence.Repositories;

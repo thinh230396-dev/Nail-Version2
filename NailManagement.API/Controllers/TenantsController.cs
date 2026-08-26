@@ -2,7 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using NailManagement.API.Security;
 using NailManagement.Application.DTOs;
 using NailManagement.Application.UseCases.Tenants;
-using NailManagement.Domain.Enums;
+using NailManagement.Domain.Enums.Auth;
+using NailManagement.Domain.Enums.Platform;
 
 namespace NailManagement.API.Controllers;
 

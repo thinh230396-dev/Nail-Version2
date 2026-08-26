@@ -1,4 +1,4 @@
-using NailManagement.Application.DTOs.Auth;
+using NailManagement.Application.DTOs;
 using NailManagement.Domain.Common;
 
 namespace NailManagement.API.Security;

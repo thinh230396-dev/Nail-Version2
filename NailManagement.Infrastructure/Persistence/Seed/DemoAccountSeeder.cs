@@ -1,6 +1,6 @@
 using NailManagement.Application.Abstractions;
-using NailManagement.Domain.Entities;
-using NailManagement.Domain.Enums;
+using NailManagement.Domain.Entities.Auth;
+using NailManagement.Domain.Enums.Auth;
 using NailManagement.Domain.Repositories;
 using NailManagement.Domain.ValueObjects;
 

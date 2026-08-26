@@ -1,6 +1,6 @@
 using NailManagement.Application.DTOs;
-using NailManagement.Domain.Entities;
-using NailManagement.Domain.Enums;
+using NailManagement.Domain.Entities.Auth;
+using NailManagement.Domain.Enums.Auth;
 
 namespace NailManagement.Application.Mappings;
 
@@ -33,4 +33,22 @@ public static class AccountMapper
         Role = ToWireFormat(user.Role),
         DisplayName = user.DisplayName
     };
+
+    /// <summary>
+    /// Tài khoản chủ tiệm kèm danh sách tiệm đang giữ.
+    /// <para>
+    /// Trạng thái mượn lại cách viết của <see cref="TenantMapper"/> thay vì dựng bảng thứ
+    /// hai: cùng một enum mà có hai cách viết ra dây là cách chắc chắn nhất để hai màn hình
+    /// hiển thị khác nhau cho cùng một tài khoản.
+    /// </para>
+    /// </summary>
+    public static TenantAdminAccountDto ToTenantAdminAccount(
+        AppUser user, IReadOnlyList<string> tenantIds) => new(
+        user.Id,
+        user.Email.Value,
+        user.Username,
+        user.DisplayName,
+        TenantMapper.ToWireFormat(user.Status),
+        user.CreatedAt,
+        tenantIds);
 }

@@ -1,7 +1,6 @@
 using NailManagement.Application.Abstractions;
 using NailManagement.Application.Common.Exceptions;
 using NailManagement.Application.DTOs;
-using NailManagement.Application.DTOs.Auth;
 using NailManagement.Application.Mappings;
 using NailManagement.Domain.Common;
 using NailManagement.Domain.Repositories;

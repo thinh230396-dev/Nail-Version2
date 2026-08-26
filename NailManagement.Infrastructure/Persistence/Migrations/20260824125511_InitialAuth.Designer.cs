@@ -25,7 +25,7 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.AppSession", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Auth.AppSession", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(64)
@@ -69,7 +69,7 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.ToTable("AppSessions", (string)null);
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.AppUser", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Auth.AppUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasMaxLength(64)
@@ -155,9 +155,9 @@ namespace NailManagement.Infrastructure.Persistence.Migrations
                     b.ToTable("AppUsers", (string)null);
                 });
 
-            modelBuilder.Entity("NailManagement.Domain.Entities.AppSession", b =>
+            modelBuilder.Entity("NailManagement.Domain.Entities.Auth.AppSession", b =>
                 {
-                    b.HasOne("NailManagement.Domain.Entities.AppUser", "User")
+                    b.HasOne("NailManagement.Domain.Entities.Auth.AppUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)

@@ -1,6 +1,8 @@
 using NailManagement.Application.DTOs;
-using NailManagement.Domain.Entities;
-using NailManagement.Domain.Enums;
+using NailManagement.Domain.Entities.Auth;
+using NailManagement.Domain.Entities.Platform;
+using NailManagement.Domain.Enums.Auth;
+using NailManagement.Domain.Enums.Platform;
 using NailManagement.Domain.Repositories;
 
 namespace NailManagement.Application.Mappings;

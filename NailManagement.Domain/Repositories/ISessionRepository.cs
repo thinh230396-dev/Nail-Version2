@@ -1,4 +1,4 @@
-using NailManagement.Domain.Entities;
+using NailManagement.Domain.Entities.Auth;
 
 namespace NailManagement.Domain.Repositories;
 

@@ -1,5 +1,6 @@
 using System.Text.Json;
-using NailManagement.Domain.Enums;
+using NailManagement.Domain.Enums.Platform;
+using NailManagement.Domain.Enums.Salon;
 
 namespace NailManagement.Infrastructure.Persistence.Seed;
 

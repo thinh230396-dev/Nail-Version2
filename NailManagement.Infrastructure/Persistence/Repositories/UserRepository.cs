@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using NailManagement.Domain.Entities;
+using NailManagement.Domain.Entities.Auth;
+using NailManagement.Domain.Enums.Auth;
 using NailManagement.Domain.Repositories;
 using NailManagement.Domain.ValueObjects;
 
@@ -47,4 +48,15 @@ public sealed class UserRepository(NailDbContext db) : IUserRepository
 
     public async Task<int> CountAsync(CancellationToken cancellationToken = default)
         => await db.AppUsers.CountAsync(cancellationToken);
+
+    /// <summary>
+    /// Sắp theo tên hiển thị ngay trong câu truy vấn để thứ tự do database quyết định một
+    /// lần, thay vì mỗi màn hình tự sắp lại theo cách của mình rồi ra kết quả khác nhau.
+    /// </summary>
+    public async Task<IReadOnlyList<AppUser>> ListByRoleAsync(
+        UserRole role, CancellationToken cancellationToken = default)
+        => await db.AppUsers
+            .Where(user => user.Role == role)
+            .OrderBy(user => user.DisplayName)
+            .ToListAsync(cancellationToken);
 }

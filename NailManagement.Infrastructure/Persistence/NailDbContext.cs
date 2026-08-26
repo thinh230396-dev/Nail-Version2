@@ -2,7 +2,10 @@ using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using NailManagement.Application.Abstractions;
 using NailManagement.Domain.Common;
-using NailManagement.Domain.Entities;
+using NailManagement.Domain.Entities.Auditing;
+using NailManagement.Domain.Entities.Auth;
+using NailManagement.Domain.Entities.Platform;
+using NailManagement.Domain.Entities.Salon;
 
 namespace NailManagement.Infrastructure.Persistence;
 

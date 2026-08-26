@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc.Filters;
 using NailManagement.Application.Common.Exceptions;
-using NailManagement.Domain.Enums;
+using NailManagement.Domain.Enums.Auth;
 using NailManagement.Domain.Policies;
 
 namespace NailManagement.API.Security;
@@ -47,6 +47,19 @@ public sealed class RequirePermissionAttribute(Feature feature) : Attribute, IAu
         if (!scope.IsAuthenticated) throw scope.Rejection ?? new UnauthenticatedException();
 
         var current = scope.Require();
+
+        // Vai trò không có Ô NÀO trong ma trận cho nhóm chức năng này thì từ chối ngay, kể
+        // cả trước khi hỏi tới tiệm. Đây KHÔNG phải đảo thứ tự bước 2 và bước 3: với những
+        // vai trò có ô — chủ tiệm, lễ tân — phép kiểm này không đúng, nên luồng của họ vẫn
+        // đi qua hạn dùng rồi tới gói rồi mới tới quyền, y như cũ.
+        //
+        // Nó có mặt để chữa một câu chữ sai với Superadmin: họ không thuộc tiệm nào và không
+        // bao giờ chọn được tiệm (BR-AUTH-031), nên nếu gọi một endpoint thuộc phạm vi tiệm
+        // thì trước đây nhận về "Chưa chọn tiệm để làm việc" — một lời mời làm việc bất khả
+        // thi. Sự thật là họ không có quyền với nhóm chức năng đó, và giờ hệ thống nói đúng
+        // điều đó.
+        if (PermissionMatrix.Resolve(current.Role, Feature) == AccessLevel.None)
+            throw new ForbiddenException();
 
         if (RequiresTenant)
         {

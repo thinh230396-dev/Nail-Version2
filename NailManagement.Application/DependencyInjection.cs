@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using NailManagement.Application.UseCases.Accounts;
 using NailManagement.Application.UseCases.Audit;
 using NailManagement.Application.UseCases.Auth;
 using NailManagement.Application.UseCases.Branches;
@@ -35,6 +36,7 @@ public static class DependencyInjection
         services.AddScoped<ChangeTenantStatusUseCase>();
         services.AddScoped<DeleteTenantUseCase>();
         services.AddScoped<ListPackagesUseCase>();
+        services.AddScoped<ListTenantAdminAccountsUseCase>();
 
         // ── Nghiệp vụ tiệm: chi nhánh ─────────────────────────────────────────
         services.AddScoped<ListBranchesUseCase>();

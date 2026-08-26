@@ -2,7 +2,7 @@ using System.Text.Json;
 using NailManagement.Application.Common.Exceptions;
 using NailManagement.Application.DTOs;
 using NailManagement.Application.Mappings;
-using NailManagement.Domain.Enums;
+using NailManagement.Domain.Enums.Auth;
 using NailManagement.Domain.Repositories;
 
 namespace NailManagement.Application.UseCases.Audit;

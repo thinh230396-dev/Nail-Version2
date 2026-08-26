@@ -1,4 +1,4 @@
-using NailManagement.Domain.Enums;
+using NailManagement.Domain.Enums.Salon;
 
 namespace NailManagement.Domain.Policies;
 

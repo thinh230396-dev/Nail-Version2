@@ -3,7 +3,8 @@ using NailManagement.Application.Common.Exceptions;
 using NailManagement.Application.DTOs;
 using NailManagement.Application.Mappings;
 using NailManagement.Domain.Common;
-using NailManagement.Domain.Entities;
+using NailManagement.Domain.Entities.Platform;
+using NailManagement.Domain.Entities.Salon;
 using NailManagement.Domain.Repositories;
 
 namespace NailManagement.Application.UseCases.Branches;

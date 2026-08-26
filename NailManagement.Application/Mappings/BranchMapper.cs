@@ -1,6 +1,6 @@
 using NailManagement.Application.DTOs;
-using NailManagement.Domain.Entities;
-using NailManagement.Domain.Enums;
+using NailManagement.Domain.Entities.Salon;
+using NailManagement.Domain.Enums.Salon;
 
 namespace NailManagement.Application.Mappings;
 
