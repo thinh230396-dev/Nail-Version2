@@ -50,5 +50,20 @@ public enum Feature
     RevenueReports = 15,
 
     /// <summary>Nhật ký kiểm toán — BR-AUD-005.</summary>
-    AuditLogs = 16
+    AuditLogs = 16,
+
+    /// <summary>
+    /// Hồ sơ của <b>chính tiệm mình</b> — chủ tiệm chỉ xem.
+    /// <para>
+    /// Cố ý tách khỏi <see cref="Tenants"/>. Hàng "Tenant" ở ma trận mục 3.4 nói về việc
+    /// quản lý tiệm <i>của người khác</i>: tạo, sửa, khóa, xóa mềm — và đó là ô riêng của
+    /// Superadmin. Đọc hồ sơ tiệm mình đang làm việc là chuyện khác hẳn, và tài liệu nghiệp
+    /// vụ không có hàng nào cho nó vì màn hình cũ đọc thẳng từ <c>localStorage</c>.
+    /// </para>
+    /// <para>
+    /// Lễ tân KHÔNG có ô này: hồ sơ tiệm mang theo danh sách chủ tiệm kèm email, giá gói và
+    /// hạn dùng — thông tin hợp đồng, không phải thứ cần ở quầy.
+    /// </para>
+    /// </summary>
+    OwnTenantProfile = 17
 }

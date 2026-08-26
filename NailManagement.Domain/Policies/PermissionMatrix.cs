@@ -36,6 +36,10 @@ public static class PermissionMatrix
         [(UserRole.TenantAdmin, Feature.UpgradeRequests)] = AccessLevel.Full,
 
         // ── Quản trị tiệm ─────────────────────────────────────────────────────
+        // Hồ sơ của chính tiệm mình — chỉ xem. Không phải hàng "Tenant" của ma trận mục
+        // 3.4: hàng đó nói về quản lý tiệm của người khác và vẫn là ô riêng của Superadmin.
+        [(UserRole.TenantAdmin, Feature.OwnTenantProfile)] = AccessLevel.Read,
+
         [(UserRole.TenantAdmin, Feature.ReceptionistAccounts)] = AccessLevel.Full,
         [(UserRole.TenantAdmin, Feature.Branches)] = AccessLevel.Full,
         [(UserRole.TenantAdmin, Feature.Staff)] = AccessLevel.Full,

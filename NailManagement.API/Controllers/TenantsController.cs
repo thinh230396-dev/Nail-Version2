@@ -59,6 +59,7 @@ public sealed record ChangeTenantStatusRequest(string? Status);
 public sealed class TenantsController(
     ListTenantsUseCase listTenants,
     GetTenantUseCase getTenant,
+    GetMyTenantUseCase getMyTenant,
     CreateTenantUseCase createTenant,
     UpdateTenantUseCase updateTenant,
     RenewTenantUseCase renewTenant,
@@ -71,6 +72,25 @@ public sealed class TenantsController(
     [RequirePermission(Feature.Tenants, RequiresTenant = false)]
     public async Task<IActionResult> List(CancellationToken cancellationToken)
         => Ok(new { tenants = await listTenants.ExecuteAsync(cancellationToken) });
+
+    /// <summary>
+    /// Hồ sơ của chính tiệm đang làm việc — cổng chủ tiệm gọi.
+    /// <para>
+    /// Đường dẫn cố định <c>me</c> chứ không phải một mã tiệm, và đó là toàn bộ điểm khác
+    /// biệt so với <c>GET /api/tenants/{id}</c> ngay trên: tiệm đến từ phiên, nên không có
+    /// cách nào hỏi hồ sơ của tiệm khác. Định tuyến của ASP.NET Core ưu tiên đoạn chữ cố
+    /// định hơn tham số, nên <c>me</c> không bị <c>{id}</c> nuốt mất.
+    /// </para>
+    /// <para>
+    /// <c>RequiresTenant</c> để nguyên mặc định <c>true</c>: chủ tiệm chưa chọn tiệm sẽ nhận
+    /// <c>TENANT_NOT_SELECTED</c> và frontend đưa họ về màn chọn tiệm, đúng BR-AUTH-025.
+    /// </para>
+    /// </summary>
+    [HttpGet("me")]
+    [RequireAuth]
+    [RequirePermission(Feature.OwnTenantProfile)]
+    public async Task<IActionResult> GetMine(CancellationToken cancellationToken)
+        => Ok(new { tenant = await getMyTenant.ExecuteAsync(cancellationToken) });
 
     [HttpGet("{id}")]
     [RequireAuth]

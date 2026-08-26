@@ -32,6 +32,7 @@ public static class DependencyInjection
         services.AddScoped<TenantReadService>();
         services.AddScoped<ListTenantsUseCase>();
         services.AddScoped<GetTenantUseCase>();
+        services.AddScoped<GetMyTenantUseCase>();
         services.AddScoped<CreateTenantUseCase>();
         services.AddScoped<UpdateTenantUseCase>();
         services.AddScoped<RenewTenantUseCase>();
