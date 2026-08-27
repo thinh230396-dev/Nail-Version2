@@ -60,6 +60,7 @@ public static class DependencyInjection
         services.AddScoped<ISubscriptionInvoiceRepository, SubscriptionInvoiceRepository>();
         services.AddScoped<IStaffRepository, StaffRepository>();
         services.AddScoped<ICustomerRepository, CustomerRepository>();
+        services.AddScoped<IAppointmentRepository, AppointmentRepository>();
         services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 
         services.AddScoped<IAuditLogger, AuditLogger>();

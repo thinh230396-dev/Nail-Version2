@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using NailManagement.Application.UseCases.Accounts;
+using NailManagement.Application.UseCases.Appointments;
 using NailManagement.Application.UseCases.Audit;
 using NailManagement.Application.UseCases.Auth;
 using NailManagement.Application.UseCases.Branches;
@@ -70,6 +71,17 @@ public static class DependencyInjection
         services.AddScoped<UpdateStaffUseCase>();
         services.AddScoped<ChangeStaffStatusUseCase>();
         services.AddScoped<GrantStaffAccountUseCase>();
+
+        // ── Nghiệp vụ tiệm: lịch hẹn ──────────────────────────────────────────
+        // AppointmentBookingGuard không phải use case; nó là bộ kiểm tra dùng chung cho cả ba
+        // đường ghi lịch hẹn — đặt mới, sửa trọn, dời giờ — nên đăng ký cạnh chúng.
+        services.AddScoped<AppointmentBookingGuard>();
+        services.AddScoped<ListAppointmentsUseCase>();
+        services.AddScoped<GetAppointmentUseCase>();
+        services.AddScoped<CreateAppointmentUseCase>();
+        services.AddScoped<UpdateAppointmentUseCase>();
+        services.AddScoped<RescheduleAppointmentUseCase>();
+        services.AddScoped<ChangeAppointmentStatusUseCase>();
 
         // ── Hệ thống ──────────────────────────────────────────────────────────
         services.AddScoped<ListAuditLogsUseCase>();

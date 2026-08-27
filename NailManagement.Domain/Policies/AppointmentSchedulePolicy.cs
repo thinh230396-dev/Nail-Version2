@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+using NailManagement.Domain.Entities.Salon;
 using NailManagement.Domain.Enums.Salon;
 
 namespace NailManagement.Domain.Policies;
@@ -33,6 +35,40 @@ public static class AppointmentSchedulePolicy
     /// </summary>
     public static bool OccupiesSlot(AppointmentStatus status)
         => status is not (AppointmentStatus.Cancelled or AppointmentStatus.NoShow);
+
+    /// <summary>
+    /// Điều kiện "lịch hẹn này đang chặn khoảng giờ kia của kỹ thuật viên kia" — BR-APT-011
+    /// và BR-APT-012 gộp lại thành một vế duy nhất, viết dưới dạng cây biểu thức để tầng
+    /// lưu trữ dịch được sang SQL.
+    /// <para>
+    /// Đây là <b>cùng một luật</b> với <see cref="Overlaps"/> và <see cref="OccupiesSlot"/>,
+    /// chỉ khác hình dạng. Lý do phải có hình dạng thứ hai: EF Core không dịch được lời gọi
+    /// hàm C# nằm trong biểu thức truy vấn, nên nếu không có hàm này thì kho dữ liệu buộc
+    /// phải chép tay điều kiện chồng lấn vào câu LINQ của nó — và chống trùng lịch sẽ có hai
+    /// định nghĩa ở hai tầng, đúng thứ mà tài liệu nghiệp vụ liệt vào nhóm không được phép sai.
+    /// </para>
+    /// <para>
+    /// Phép so sánh nghiêm ngặt được giữ nguyên: một lịch kết thúc lúc 15:00 không chặn lịch
+    /// bắt đầu lúc 15:00. Thời gian dọn dẹp đã nằm sẵn trong <c>EndAt</c> (BR-APT-010) nên
+    /// hai lịch sát nhau vẫn có khoảng trở tay.
+    /// </para>
+    /// </summary>
+    /// <param name="exceptAppointmentId">
+    /// Chính lịch hẹn đang được sửa hoặc đang được dời. Thiếu tham số này thì một lịch hẹn
+    /// lưu lại y nguyên sẽ tự báo mình trùng giờ với chính mình.
+    /// </param>
+    public static Expression<Func<Appointment, bool>> BlockingSlot(
+        string staffId,
+        DateTimeOffset start,
+        DateTimeOffset end,
+        string? exceptAppointmentId)
+        => appointment
+            => appointment.StaffId == staffId
+               && appointment.Status != AppointmentStatus.Cancelled
+               && appointment.Status != AppointmentStatus.NoShow
+               && appointment.StartAt < end
+               && appointment.EndAt > start
+               && (exceptAppointmentId == null || appointment.Id != exceptAppointmentId);
 
     /// <summary>
     /// BR-APT-013 — đặt ngoài ca làm việc của kỹ thuật viên chỉ CẢNH BÁO, vẫn cho lưu.

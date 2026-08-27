@@ -167,19 +167,7 @@ public class Appointment : ITenantOwned
             now);
 
         var index = 0;
-        foreach (var service in services)
-        {
-            var lineId = lineIdFactory?.Invoke() ?? $"{appointment.Id}-S{++index}";
-
-            appointment._services.Add(AppointmentService.Create(
-                lineId,
-                tenantId,
-                appointment.Id,
-                service.ServiceId,
-                service.ServiceName,
-                service.DurationMinutes,
-                service.BufferMinutes));
-        }
+        appointment.FillServices(services, () => lineIdFactory?.Invoke() ?? $"{appointment.Id}-S{++index}");
 
         return appointment;
     }
@@ -206,6 +194,94 @@ public class Appointment : ITenantOwned
     }
 
     /// <summary>
+    /// Thay trọn nội dung lịch hẹn: chi nhánh, khách, kỹ thuật viên, giờ bắt đầu, danh sách
+    /// dịch vụ, nguồn, ghế, ghi chú và tiền cọc. Giờ kết thúc được tính lại từ danh sách
+    /// dịch vụ mới theo BR-APT-010, nên tầng gọi <b>phải chạy lại phép chống trùng ở
+    /// BR-APT-011</b> sau khi gọi hàm này, đúng như với <see cref="Reschedule"/>.
+    /// <para>
+    /// Là phép thay trọn chứ không phải vá từng trường, cùng khuôn với <c>PUT /api/staff/{id}</c>
+    /// và <c>PUT /api/customers/{id}</c>: bỏ trống ghi chú trong thân request là xóa ghi chú.
+    /// Vá từng trường sẽ cần một quy ước phân biệt "không gửi" với "gửi rỗng", thứ mà JSON
+    /// không có sẵn và mỗi màn hình sẽ tự hiểu một kiểu.
+    /// </para>
+    /// <para>
+    /// ⚠️ Chặn ở CẢ BA trạng thái cuối, không riêng <c>Completed</c>. BR-APT-023 chỉ nói tới
+    /// lịch đã hoàn tất, nhưng sửa một lịch đã hủy hoặc đã ghi khách không đến là dựng lại
+    /// một lịch hẹn ở cửa sau: nó vẫn mang trạng thái cũ nên không chiếm chỗ của ai, mà nội
+    /// dung thì đã thành một buổi hẹn khác hẳn, và BR-APT-041 nói ba trạng thái ấy không
+    /// quay lại được. Muốn đặt lại thì tạo lịch mới.
+    /// </para>
+    /// </summary>
+    /// <param name="lineIdFactory">
+    /// Bắt buộc, khác <see cref="Create"/> — các dòng dịch vụ cũ bị bỏ đi và dòng mới phải
+    /// mang mã khác. Sinh lại theo đúng công thức của lúc tạo là dựng ra chính những mã vừa
+    /// bị xóa trong cùng một lần lưu, và thứ tự xóa rồi thêm khi đó không còn chắc chắn.
+    /// </param>
+    public void Revise(
+        string branchId,
+        string customerId,
+        string staffId,
+        DateTimeOffset startAt,
+        IReadOnlyList<(string ServiceId, string ServiceName, int DurationMinutes, int BufferMinutes)> services,
+        AppointmentSource source,
+        string? station,
+        string? note,
+        long deposit,
+        DateTimeOffset now,
+        Func<string> lineIdFactory)
+    {
+        if (AppointmentLifecyclePolicy.IsFinal(Status))
+        {
+            throw DomainException.ForField(
+                "status",
+                $"Lịch hẹn ở trạng thái “{AppointmentStatusText.Label(Status)}” thì không sửa được nữa.");
+        }
+
+        // BR-VAL-001 — giống lúc tạo: không dòng dịch vụ nào thì khoảng chiếm chỗ bằng 0,
+        // và lịch hẹn trở thành một điểm vô nghĩa trên bảng giờ.
+        if (services.Count == 0)
+            throw DomainException.ForField("services", "Lịch hẹn phải có ít nhất một dịch vụ.");
+
+        BranchId = Guard.Reference(branchId, "branchId", "Chi nhánh");
+        CustomerId = Guard.Reference(customerId, "customerId", "Khách hàng");
+        StaffId = Guard.Reference(staffId, "staffId", "Kỹ thuật viên");
+        Source = source;
+        Station = Guard.Optional(station, "station", "Ghế hoặc phòng", 80);
+        Note = Guard.Optional(note, "note", "Ghi chú lịch hẹn", ValidationPolicy.LongTextMaxLength);
+        Deposit = Guard.Money(deposit, "deposit", "Tiền cọc");
+
+        StartAt = startAt;
+        EndAt = startAt.AddMinutes(AppointmentSchedulePolicy.TotalMinutes(
+            services.Select(service => (service.DurationMinutes, service.BufferMinutes))));
+
+        _services.Clear();
+        FillServices(services, lineIdFactory);
+
+        UpdatedAt = now;
+    }
+
+    /// <summary>
+    /// Dựng các dòng dịch vụ. Dùng chung cho lúc tạo và lúc sửa, để hai đường không thể chép
+    /// khác nhau những trường mà <see cref="AppointmentService"/> phải giữ lại bản sao.
+    /// </summary>
+    private void FillServices(
+        IReadOnlyList<(string ServiceId, string ServiceName, int DurationMinutes, int BufferMinutes)> services,
+        Func<string> lineIdFactory)
+    {
+        foreach (var service in services)
+        {
+            _services.Add(AppointmentService.Create(
+                lineIdFactory(),
+                TenantId,
+                Id,
+                service.ServiceId,
+                service.ServiceName,
+                service.DurationMinutes,
+                service.BufferMinutes));
+        }
+    }
+
+    /// <summary>
     /// BR-APT-022 — chuyển trạng thái theo đúng sơ đồ ở mục 16.1; mọi chuyển đổi ngoài sơ
     /// đồ đều bị từ chối.
     /// <para>
@@ -219,7 +295,12 @@ public class Appointment : ITenantOwned
             throw DomainException.ForField("status", "Lịch hẹn chỉ hoàn tất khi hóa đơn đã thanh toán đủ.");
 
         if (!AppointmentLifecyclePolicy.CanTransition(Status, next))
-            throw DomainException.ForField("status", $"Không thể chuyển lịch hẹn từ {Status} sang {next}.");
+        {
+            throw DomainException.ForField(
+                "status",
+                $"Không thể chuyển lịch hẹn từ “{AppointmentStatusText.Label(Status)}” "
+                + $"sang “{AppointmentStatusText.Label(next)}”.");
+        }
 
         Status = next;
         UpdatedAt = now;
@@ -231,7 +312,12 @@ public class Appointment : ITenantOwned
         if (Status == AppointmentStatus.Completed) return;
 
         if (!AppointmentLifecyclePolicy.CanTransition(Status, AppointmentStatus.Completed))
-            throw DomainException.ForField("status", $"Không thể hoàn tất lịch hẹn đang ở trạng thái {Status}.");
+        {
+            throw DomainException.ForField(
+                "status",
+                "Không thể hoàn tất lịch hẹn đang ở trạng thái "
+                + $"“{AppointmentStatusText.Label(Status)}”.");
+        }
 
         Status = AppointmentStatus.Completed;
         UpdatedAt = now;
