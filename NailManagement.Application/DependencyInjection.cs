@@ -3,6 +3,7 @@ using NailManagement.Application.UseCases.Accounts;
 using NailManagement.Application.UseCases.Audit;
 using NailManagement.Application.UseCases.Auth;
 using NailManagement.Application.UseCases.Branches;
+using NailManagement.Application.UseCases.Customers;
 using NailManagement.Application.UseCases.Packages;
 using NailManagement.Application.UseCases.Services;
 using NailManagement.Application.UseCases.Staff;
@@ -52,6 +53,13 @@ public static class DependencyInjection
         services.AddScoped<CreateServiceUseCase>();
         services.AddScoped<UpdateServiceUseCase>();
         services.AddScoped<ChangeServiceStatusUseCase>();
+
+        // ── Nghiệp vụ tiệm: khách hàng ───────────────────────────────────────
+        services.AddScoped<ListCustomersUseCase>();
+        services.AddScoped<GetCustomerUseCase>();
+        services.AddScoped<CreateCustomerUseCase>();
+        services.AddScoped<UpdateCustomerUseCase>();
+        services.AddScoped<ChangeCustomerStatusUseCase>();
 
         // ── Nghiệp vụ tiệm: nhân viên ─────────────────────────────────────────
         // StaffQuotaGuard không phải use case; nó là phép đếm hạn mức dùng chung cho hai
