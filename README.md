@@ -156,7 +156,7 @@ của buổi demo.
 ## 4. Kiểm thử
 
 ```bash
-dotnet test        # 75 phép thử, ~8 giây
+dotnet test        # 82 phép thử, ~11 giây
 ```
 
 Bộ xUnit dựng máy chủ **trong bộ nhớ** qua `WebApplicationFactory` và chạy trên một database
@@ -169,7 +169,7 @@ trông như hỏng mã nguồn trong khi thật ra chỉ là hai tiến trình t
 
 Bố cục: `Infrastructure/` là bộ khung (client, factory, database tạm), `Scenarios/SalonScenario.cs`
 dựng dữ liệu nghiệp vụ dùng chung, và các lớp kiểm thử gom theo vùng luật — `Authorization/`,
-`Isolation/`, `Appointments/`, `Invoices/`, `Payments/`.
+`Isolation/`, `Appointments/`, `Invoices/`, `Payments/`, `Sessions/`.
 
 > `SalonScenario.NextSlot()` phải là **bộ đếm khung giờ duy nhất** của cả lần chạy. Mọi lớp kiểm
 > thử đều đặt lịch cho cùng một kỹ thuật viên, nên hai bộ đếm riêng sẽ đụng BR-APT-011 và làm lớp
@@ -197,8 +197,9 @@ NailManagement.Tests           xUnit chạy qua HTTP thật
 `AddApplication()` và `AddInfrastructure()` là **điểm ráp nối duy nhất** — API không biết use
 case cần gì, cũng không biết repository cài bằng gì.
 
-49 endpoint trên 13 controller: xác thực và phiên, tiệm, chi nhánh, dịch vụ, nhân sự, khách hàng,
-lịch hẹn, hóa đơn bán hàng và thu tiền, báo cáo doanh thu, nhật ký kiểm toán.
+51 endpoint trên 14 controller: xác thực và phiên, tiệm, chi nhánh, dịch vụ, nhân sự, khách hàng,
+lịch hẹn, hóa đơn bán hàng và thu tiền, báo cáo doanh thu, nhật ký kiểm toán, quản trị phiên
+đăng nhập.
 
 ### Chuỗi kiểm tra quyền — thứ tự không được đảo
 
