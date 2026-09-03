@@ -173,9 +173,16 @@ public sealed class AppointmentsController(
     /// BR-APT-022 — chuyển trạng thái theo sơ đồ mục 16.1. Đây cũng là đường hủy lịch
     /// (BR-APT-024) và đường ghi nhận khách không đến.
     /// <para>
-    /// Chuyển sang <c>COMPLETED</c> bị từ chối ở lát cắt này: BR-APT-026 nói lịch chỉ hoàn tất
-    /// khi hóa đơn gắn với nó đã thanh toán đủ, và BR-APT-027 cho chủ tiệm một ngoại lệ khi
-    /// hóa đơn còn thiếu tiền — cả hai đều cần bảng hóa đơn bán hàng.
+    /// Chuyển sang <c>COMPLETED</c> là ngoại lệ duy nhất, và nó <b>chỉ dành cho chủ tiệm</b>:
+    /// BR-APT-026 nói lịch tự hoàn tất khi hóa đơn thu đủ tiền — đường đó nằm ở lệnh thu tiền,
+    /// không ai bấm nút — còn BR-APT-027 cho chủ tiệm đóng tay một lịch đang phục vụ dở khi
+    /// hóa đơn chưa thu đủ. Lễ tân gửi <c>COMPLETED</c> sẽ nhận 403 kèm câu chữ nói rõ lịch tự
+    /// hoàn tất khi thu đủ tiền.
+    /// </para>
+    /// <para>
+    /// Phép kiểm quyền ấy nằm trong use case chứ không ở thuộc tính <c>RequirePermission</c>
+    /// bên dưới, vì nó phụ thuộc vào nội dung thân request: cùng đường dẫn này còn là đường
+    /// hủy lịch mà lễ tân dùng cả ngày.
     /// </para>
     /// </summary>
     [HttpPatch("{id}/status")]

@@ -50,6 +50,23 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
+// ── Giao diện dựng sẵn, nếu có ────────────────────────────────────────────────
+// Khi wwwroot/ có một bản build của frontend, máy chủ này phục vụ luôn giao diện: một cổng,
+// một lệnh, không cần Node lúc trình bày. Không có bản build thì khối này im lặng bỏ qua và
+// máy chủ chạy đúng như cũ — chế độ phát triển vẫn là Vite ở cổng 3000 proxy sang đây.
+//
+// Đặt TRƯỚC UseRouting() và SessionMiddleware là có chủ ý: tệp tĩnh không thuộc về ai và
+// không cần phiên đăng nhập. Cho chúng đi qua chuỗi kiểm tra quyền là bắt mỗi tấm ảnh phải
+// tra một phiên trong database.
+var hasFrontendBuild = app.Environment.WebRootPath is { Length: > 0 } webRoot
+    && File.Exists(Path.Combine(webRoot, "index.html"));
+
+if (hasFrontendBuild)
+{
+    app.UseDefaultFiles();
+    app.UseStaticFiles();
+}
+
 // ── Chuỗi kiểm tra quyền — BR-TENANT-013, thứ tự KHÔNG được đảo ───────────────
 // UseRouting() được gọi tường minh để hai middleware bên dưới đọc được thông tin của
 // endpoint sắp chạy; thiếu nó thì phép miễn trừ ở BR-TENANT-011 không tra được.
@@ -82,6 +99,21 @@ app.MapFallback("/api/{**path}", (HttpContext context) =>
     return Results.Json(body, statusCode: StatusCodes.Status404NotFound);
 });
 
+// Mọi đường dẫn còn lại trả về index.html để React tự dựng màn hình.
+//
+// Frontend không có react-router: màn hình hiện tại là state trong App.tsx, không phải URL. Nên
+// thực tế chỉ có đúng một đường "/" cần phục vụ — nhưng người dùng bấm F5 ở một URL gõ tay, hoặc
+// mở lại một liên kết cũ, thì vẫn phải nhận giao diện chứ không phải 404 trắng.
+//
+// Khai báo SAU phần dự phòng của /api là bắt buộc về mặt ý, dù bộ định tuyến chọn theo độ cụ thể
+// chứ không theo thứ tự: "/api/{**path}" hẹp hơn "{**path}" nên đường API vẫn nhận đúng JSON lỗi
+// của mình. Nuốt mất nó thì một endpoint gõ sai sẽ trả về trang HTML, và tầng service ở frontend
+// sẽ báo "không đọc được phản hồi" thay vì "không có endpoint này".
+if (hasFrontendBuild)
+{
+    app.MapFallbackToFile("index.html");
+}
+
 // ── Khởi tạo database ─────────────────────────────────────────────────────────
 // Áp migration rồi nạp tài khoản demo, để lần chạy đầu trên máy sạch không cần thao tác tay.
 using (var scope = app.Services.CreateScope())
@@ -106,3 +138,14 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+
+/// <summary>
+/// Điểm vào của máy chủ, mở ra cho project kiểm thử tham chiếu tới.
+/// <para>
+/// Cần thiết vì <c>Program.cs</c> dùng lối viết lệnh ở cấp cao nhất, và trình biên dịch sinh
+/// ra một lớp <c>Program</c> ở mức <c>internal</c>. <c>WebApplicationFactory&lt;TEntryPoint&gt;</c>
+/// đòi một kiểu công khai để dựng lại đúng máy chủ này trong bộ nhớ — nhờ vậy bộ kiểm thử đi
+/// qua trọn chuỗi middleware thật thay vì gọi thẳng vào use case.
+/// </para>
+/// </summary>
+public partial class Program;

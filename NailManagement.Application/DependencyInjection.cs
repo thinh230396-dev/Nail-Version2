@@ -6,6 +6,9 @@ using NailManagement.Application.UseCases.Auth;
 using NailManagement.Application.UseCases.Branches;
 using NailManagement.Application.UseCases.Customers;
 using NailManagement.Application.UseCases.Packages;
+using NailManagement.Application.UseCases.Reports;
+using NailManagement.Application.UseCases.Subscriptions;
+using NailManagement.Application.UseCases.SalesInvoices;
 using NailManagement.Application.UseCases.Services;
 using NailManagement.Application.UseCases.Staff;
 using NailManagement.Application.UseCases.Tenants;
@@ -41,6 +44,7 @@ public static class DependencyInjection
         services.AddScoped<ChangeTenantStatusUseCase>();
         services.AddScoped<DeleteTenantUseCase>();
         services.AddScoped<ListPackagesUseCase>();
+        services.AddScoped<ListSubscriptionInvoicesUseCase>();
         services.AddScoped<ListTenantAdminAccountsUseCase>();
 
         // ── Nghiệp vụ tiệm: chi nhánh ─────────────────────────────────────────
@@ -82,6 +86,25 @@ public static class DependencyInjection
         services.AddScoped<UpdateAppointmentUseCase>();
         services.AddScoped<RescheduleAppointmentUseCase>();
         services.AddScoped<ChangeAppointmentStatusUseCase>();
+
+        // ── Nghiệp vụ tiệm: hóa đơn bán hàng ──────────────────────────────────
+        // SalesInvoiceLineBuilder không phải use case; nó chốt tên và giá cho cả ba đường
+        // dựng dòng hóa đơn — từ lịch hẹn, bán lẻ, và sửa trọn.
+        services.AddScoped<SalesInvoiceLineBuilder>();
+        services.AddScoped<ListSalesInvoicesUseCase>();
+        services.AddScoped<GetSalesInvoiceUseCase>();
+        services.AddScoped<CreateSalesInvoiceUseCase>();
+        services.AddScoped<UpdateSalesInvoiceUseCase>();
+        services.AddScoped<ChangeSalesInvoiceStatusUseCase>();
+
+        // ── Nghiệp vụ tiệm: thu tiền ──────────────────────────────────────────
+        // Cùng lát cắt hóa đơn nhưng tách khối, vì hai đường này khác hẳn ba đường trên: chúng
+        // ghi vào bảng dòng thu tiền, và một trong hai còn chạm sang lịch hẹn (BR-APT-026).
+        services.AddScoped<RecordPaymentUseCase>();
+        services.AddScoped<IssueRefundUseCase>();
+
+        // ── Báo cáo ───────────────────────────────────────────────────────────
+        services.AddScoped<GetRevenueReportUseCase>();
 
         // ── Hệ thống ──────────────────────────────────────────────────────────
         services.AddScoped<ListAuditLogsUseCase>();

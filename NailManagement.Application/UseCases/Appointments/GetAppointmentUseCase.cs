@@ -1,4 +1,5 @@
 using NailManagement.Application.Abstractions;
+using NailManagement.Application.Common;
 using NailManagement.Application.DTOs;
 using NailManagement.Application.Mappings;
 using NailManagement.Domain.Repositories;
@@ -20,8 +21,10 @@ public sealed class GetAppointmentUseCase(IAppointmentRepository appointments, I
     public async Task<AppointmentDto> ExecuteAsync(
         string id, ActorContext actor, CancellationToken cancellationToken = default)
     {
-        var appointment = AppointmentScope.EnsureInScope(
-            await appointments.FindByIdAsync(id ?? string.Empty, cancellationToken), actor);
+        var appointment = BranchScope.EnsureInScope(
+            await appointments.FindByIdAsync(id ?? string.Empty, cancellationToken),
+            actor,
+            "Không tìm thấy lịch hẹn.");
 
         return AppointmentMapper.ToDto(appointment, clock.UtcNow);
     }

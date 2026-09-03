@@ -14,7 +14,7 @@ namespace NailManagement.Domain.Entities.Salon;
 /// tổng tiền không khớp với các dòng của chính nó.
 /// </para>
 /// </summary>
-public class SalesInvoice : ITenantOwned
+public class SalesInvoice : ITenantOwned, IBranchOwned
 {
     private readonly List<SalesInvoiceLine> _lines = [];
     private readonly List<InvoicePayment> _payments = [];
@@ -180,8 +180,19 @@ public class SalesInvoice : ITenantOwned
     /// <summary>
     /// Ghi nhận một lần thu tiền rồi tính lại trạng thái theo BR-PAY-003.
     /// <para>
-    /// Không chặn thu quá số còn lại: khách đưa dư rồi lấy lại tiền thừa là chuyện thường
-    /// ở quầy, và ép cho khớp từng đồng chỉ khiến lễ tân ghi sai số cho xong.
+    /// <b>Không thu quá số còn thiếu.</b> Bản trước cố ý bỏ trống rào này, với lý do khách
+    /// đưa dư rồi lấy lại tiền thừa là chuyện thường ở quầy. Buổi tổng duyệt ngày 19 cho thấy
+    /// cái giá của nó: thu 1.000₫ lên một hóa đơn đã trả đủ vẫn được nhận, <c>Remaining</c>
+    /// thành số âm, và báo cáo doanh thu cộng luôn phần dư ấy vào tiền tiệm kiếm được. Tiền
+    /// thối lại cho khách không phải doanh thu, nên nó cũng không được vào sổ.
+    /// </para>
+    /// <para>
+    /// Rào chỉ đặt ở <see cref="PaymentType.Payment"/>. Dòng <see cref="PaymentType.Deposit"/>
+    /// do <c>CreateSalesInvoiceUseCase</c> sinh ra từ tiền cọc của lịch hẹn, mà BR-APT-032
+    /// không có luật nào buộc cọc phải nhỏ hơn hóa đơn — khách cọc 500.000₫ rồi đổi sang dịch
+    /// vụ 300.000₫ là hợp lệ, và chặn ở đây sẽ làm hỏng cả việc lập hóa đơn. Dòng
+    /// <see cref="PaymentType.Refund"/> đi đường <see cref="IssueRefund"/>, nơi đã có rào
+    /// đối xứng của BR-PAY-008.
     /// </para>
     /// </summary>
     public InvoicePayment RegisterPayment(
@@ -196,6 +207,15 @@ public class SalesInvoice : ITenantOwned
     {
         if (Status is SalesInvoiceStatus.Cancelled or SalesInvoiceStatus.Refunded)
             throw DomainException.ForField("status", "Hóa đơn đã hủy hoặc đã hoàn tiền thì không thu thêm được.");
+
+        if (type == PaymentType.Payment && amount > Remaining)
+        {
+            throw DomainException.ForField(
+                "amount",
+                Remaining > 0
+                    ? $"Hóa đơn chỉ còn thiếu {Remaining:N0}₫, không thu được {amount:N0}₫."
+                    : "Hóa đơn đã thu đủ, không thu thêm được.");
+        }
 
         var payment = InvoicePayment.Receive(
             paymentId, TenantId, Id, type, method, amount, paidAt, reference, createdByUserId);
@@ -251,6 +271,50 @@ public class SalesInvoice : ITenantOwned
         UpdatedAt = now;
     }
 
+    /// <summary>
+    /// Bỏ hết các dòng hàng hiện có, để tầng gọi thêm lại bộ dòng mới — BR-INV-015, phép sửa
+    /// trọn một hóa đơn chưa thu đủ.
+    /// <para>
+    /// Có mặt thay vì bắt người gọi lặp <see cref="RemoveLine"/> theo từng mã dòng: làm vậy thì
+    /// tổng tiền được tính lại đúng bằng số dòng bị bỏ, và giảm giá bị kéo về trần giữa chừng
+    /// theo một tổng tiền hàng chỉ tồn tại trong khoảnh khắc — nó sẽ không bao giờ nảy về giá
+    /// trị cũ dù bộ dòng mới có lớn hơn.
+    /// </para>
+    /// </summary>
+    public void ClearLines(DateTimeOffset now)
+    {
+        EnsureEditable();
+
+        _lines.Clear();
+        Recalculate(now);
+    }
+
+    /// <summary>
+    /// Ghi công kỹ thuật viên cho hóa đơn — chiều "nhân viên" của báo cáo doanh thu (BR-REV-004)
+    /// và là nguồn tính hoa hồng ở BR-EMP-011.
+    /// <para>
+    /// Sửa được chừng nào hóa đơn còn chưa thu đủ: ở quầy, lễ tân mở hóa đơn bán lẻ trước rồi mới
+    /// biết ai đứng làm. Sau khi hóa đơn đã thanh toán thì nó là chứng từ, và BR-INV-014 không
+    /// cho sửa bất cứ trường nào nữa.
+    /// </para>
+    /// </summary>
+    public void AssignStaff(string? staffId, DateTimeOffset now)
+    {
+        EnsureEditable();
+
+        StaffId = string.IsNullOrWhiteSpace(staffId) ? null : staffId.Trim();
+        UpdatedAt = now;
+    }
+
+    /// <summary>Ghi chú của hóa đơn. Bỏ trống là xóa ghi chú — đây là phép thay trọn, không phải vá.</summary>
+    public void UpdateNote(string? note, DateTimeOffset now)
+    {
+        EnsureEditable();
+
+        Note = Guard.Optional(note, "note", "Ghi chú hóa đơn", ValidationPolicy.LongTextMaxLength);
+        UpdatedAt = now;
+    }
+
     /// <summary>BR-PAY-003 — hóa đơn đã thu đủ tiền, là điều kiện để lịch hẹn tự hoàn tất (BR-APT-026).</summary>
     public bool IsFullyPaid() => Status == SalesInvoiceStatus.Paid;
 
@@ -274,6 +338,10 @@ public class SalesInvoice : ITenantOwned
     {
         // BR-INV-014/015 — chỉ hóa đơn chưa thu đủ mới sửa được.
         if (Status is SalesInvoiceStatus.Paid or SalesInvoiceStatus.Refunded or SalesInvoiceStatus.Cancelled)
-            throw DomainException.ForField("status", $"Hóa đơn ở trạng thái {Status} thì không sửa được nữa.");
+        {
+            throw DomainException.ForField(
+                "status",
+                $"Hóa đơn ở trạng thái “{SalesInvoiceStatusText.Label(Status)}” thì không sửa được nữa.");
+        }
     }
 }

@@ -46,8 +46,17 @@ public sealed class GetCurrentAccountUseCase(
             throw new UnauthenticatedException();
 
         // BR-AUTH-021 + BR-AUTH-022 — tài khoản không còn Active thì phiên hết giá trị.
+        //
+        // Ném ACCOUNT_NOT_ACTIVE chứ KHÔNG phải UNAUTHENTICATED, và khác biệt ấy quan trọng
+        // với người dùng chứ không chỉ với mã: theo chú thích ở ErrorCode, frontend đưa người
+        // dùng về màn đăng nhập khi gặp UNAUTHENTICATED và cố ý KHÔNG làm vậy với 403. Gộp hai
+        // thứ lại thì người vừa bị khóa tài khoản bị đá về màn đăng nhập, đăng nhập lại, nhận
+        // đúng lỗi ấy, và lặp mãi mà không đọc được lý do thật.
+        //
+        // Đây cũng là điều LoginUseCase đã làm cho cùng một tình huống, nên hai đường vào hệ
+        // thống nay trả lời giống nhau thay vì mâu thuẫn.
         if (!user.IsActive())
-            throw new UnauthenticatedException("Tài khoản đã bị khóa hoặc vô hiệu hóa.");
+            throw new AccountNotActiveException();
 
         var (activeTenantId, scope) =
             await ResolveTenantScopeAsync(user.Id, session.ActiveTenantId, now, cancellationToken);

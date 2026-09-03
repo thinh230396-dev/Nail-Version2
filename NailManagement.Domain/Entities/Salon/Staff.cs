@@ -14,7 +14,7 @@ namespace NailManagement.Domain.Entities.Salon;
 /// giữ bản sao — hai bản sao là hai chỗ để lệch nhau.
 /// </para>
 /// </summary>
-public class Staff : ITenantOwned
+public class Staff : ITenantOwned, IBranchOwned
 {
     /// <summary>Dành riêng cho EF Core.</summary>
     private Staff()

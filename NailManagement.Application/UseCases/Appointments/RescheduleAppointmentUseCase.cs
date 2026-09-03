@@ -1,4 +1,5 @@
 using NailManagement.Application.Abstractions;
+using NailManagement.Application.Common;
 using NailManagement.Application.DTOs;
 using NailManagement.Application.Mappings;
 using NailManagement.Domain.Common;
@@ -32,9 +33,10 @@ public sealed class RescheduleAppointmentUseCase(
     {
         var now = clock.UtcNow;
 
-        var appointment = AppointmentScope.EnsureInScope(
+        var appointment = BranchScope.EnsureInScope(
             await appointments.FindByIdAsync(command.AppointmentId ?? string.Empty, cancellationToken),
-            actor);
+            actor,
+            "Không tìm thấy lịch hẹn.");
 
         // Kiểm trạng thái TRƯỚC phép chống trùng, dù Appointment.Reschedule cũng kiểm lại lần
         // nữa. Không phải để phòng hờ, mà để câu trả lời đúng trọng tâm: một lịch đã hoàn tất

@@ -14,6 +14,25 @@ namespace NailManagement.Infrastructure.Persistence.Repositories;
 /// </summary>
 public sealed class SubscriptionInvoiceRepository(NailDbContext db) : ISubscriptionInvoiceRepository
 {
+    public async Task<IReadOnlyList<SubscriptionInvoice>> ListAllAsync(
+        CancellationToken cancellationToken = default)
+        /*
+          KHÔNG nối sang bảng tiệm, và đó là điều bắt buộc chứ không phải tối ưu.
+
+          Tiệm có bộ lọc xóa mềm toàn cục, nên một phép `Include` sinh ra INNER JOIN và **đánh
+          rơi mọi hóa đơn của tiệm đã xóa mềm** — 6 trên 11 dòng trong bộ dữ liệu hiện tại.
+          BR-INV-031 nói thẳng hóa đơn đăng ký **không bao giờ xóa được** vì nó là chứng từ tài
+          chính; giấu nó đi vì tiệm bị gỡ là làm mất đúng phần lịch sử mà rule ấy đi giữ.
+
+          Không mất gì khi bỏ phép nối: hóa đơn đã lưu sẵn `TenantName` và `PackageName`, chốt
+          tại thời điểm lập (BR-SUB-004). Đó cũng là thứ đúng để hiển thị — tên tiệm lúc phát
+          hành hóa đơn, không phải tên hiện tại.
+        */
+        => await db.SubscriptionInvoices
+            .OrderByDescending(invoice => invoice.CreatedAt)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+
     public async Task AddAsync(SubscriptionInvoice invoice, CancellationToken cancellationToken = default)
     {
         await db.SubscriptionInvoices.AddAsync(invoice, cancellationToken);

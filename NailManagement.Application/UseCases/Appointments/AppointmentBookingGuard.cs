@@ -1,4 +1,5 @@
 using System.Globalization;
+using NailManagement.Application.Common;
 using NailManagement.Application.Common.Exceptions;
 using NailManagement.Application.DTOs;
 using NailManagement.Domain.Common;
@@ -73,7 +74,7 @@ public sealed class AppointmentBookingGuard(
                 "staffId", $"{staff.FullName} đã nghỉ việc nên không nhận lịch hẹn mới được.");
         }
 
-        return AppointmentScope.EnsureAssignable(staff, actor);
+        return BranchScope.EnsureInScope(staff, actor, "Không tìm thấy kỹ thuật viên này trong chi nhánh của bạn.");
     }
 
     /// <summary>

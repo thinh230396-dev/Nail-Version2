@@ -1,0 +1,109 @@
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using NailManagement.Application.Abstractions;
+using NailManagement.Infrastructure.Persistence;
+
+namespace NailManagement.Tests.Infrastructure;
+
+/// <summary>
+/// Dựng lại <b>đúng máy chủ thật</b> trong bộ nhớ, trên một database riêng.
+/// <para>
+/// Vì sao đi qua HTTP chứ không gọi thẳng use case: bốn trong sáu kịch bản mà lộ trình §5 liệt
+/// kê đều nằm ở tầng HTTP — <c>RequirePermission</c> là một bộ lọc của MVC,
+/// <c>TenantWriteGuardMiddleware</c> và <c>SessionMiddleware</c> là middleware. Gọi thẳng
+/// <c>ExecuteAsync</c> thì cả ba đều không chạy, và bộ kiểm thử sẽ xanh trong khi hệ thống thật
+/// vẫn hở. Chuỗi bốn bước của BR-TENANT-013 chỉ tồn tại khi request đi trọn đường ống.
+/// </para>
+/// <para>
+/// Database nằm trên cùng máy chủ SQL Server với lúc chạy thật, chỉ khác tên. Không dùng EF Core
+/// InMemory vì nó <b>không cưỡng chế chỉ số duy nhất và không có giao dịch thật</b> — bộ kiểm
+/// thử sẽ xanh ở đúng những chỗ đáng lẽ phải đỏ. Không dùng SQLite vì nó khác provider ở những
+/// chỗ mà mã này thật sự dùng tới: <c>datetimeoffset</c>, <c>AsSplitQuery</c>, và vài phép dịch
+/// LINQ.
+/// </para>
+/// <para>
+/// Database bị xóa trước mỗi lần chạy, rồi máy chủ tự dựng lại từ migration và nạp bộ dữ liệu
+/// mẫu ngay lúc khởi động — cùng đoạn mã ở <c>Program.cs</c> mà lần chạy thật dùng. Nhờ vậy bộ
+/// kiểm thử có sẵn <b>hai tiệm và ba vai trò</b> mà không cần một bộ nạp thứ hai để phải giữ cho
+/// khớp với bộ nạp thật.
+/// </para>
+/// </summary>
+public sealed class SalonSysFactory : WebApplicationFactory<Program>
+{
+    /// <summary>
+    /// Tên database cố ý khác hẳn database chạy thật. Trùng tên là mỗi lần chạy kiểm thử lại xóa
+    /// sạch dữ liệu mà người dùng đang thao tác dở trên trình duyệt.
+    /// <para>
+    /// ⚠️ <b>Ghi đè chuỗi kết nối bằng <c>ConfigureAppConfiguration</c> là KHÔNG ĐỦ</b>, và đó là
+    /// một cái bẫy đã thật sự sập suốt hai ngày: <c>Program.cs</c> gọi
+    /// <c>AddInfrastructure(builder.Configuration)</c> ngay ở dòng thứ hai, và
+    /// <c>Infrastructure/DependencyInjection.cs</c> đọc <c>GetConnectionString("Default")</c>
+    /// <b>ngay lúc đăng ký service</b> rồi giữ luôn chuỗi ấy trong closure của
+    /// <c>UseSqlServer</c>. Callback của <c>ConfigureAppConfiguration</c> thì bị hoãn tới
+    /// <c>builder.Build()</c> — tức là chạy SAU khi giá trị đã bị đọc xong. Lệnh ghi đè vì vậy
+    /// không bao giờ có tác dụng, và máy chủ kiểm thử nối thẳng vào database demo.
+    /// </para>
+    /// <para>
+    /// Cách chữa là đặt <b>biến môi trường</b> trong hàm khởi tạo, tức trước cả khi host được
+    /// dựng. <c>WebApplication.CreateBuilder</c> luôn nạp sẵn nguồn biến môi trường, và nguồn đó
+    /// xếp trên <c>appsettings.json</c>, nên giá trị đã sẵn sàng đúng lúc dòng đọc kia chạy.
+    /// </para>
+    /// </summary>
+    private const string ConnectionString =
+        "Server=localhost;Database=NailManagementTests;"
+        + "Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True";
+
+    public SalonSysFactory()
+    {
+        // Thứ tự bắt buộc: đặt biến môi trường TRƯỚC. DropDatabase ngay dưới đây dùng thẳng
+        // hằng số nên nó luôn xóa đúng chỗ, nhưng máy chủ thì đọc cấu hình — và nếu dòng này
+        // chạy sau, máy chủ đã kịp nối vào database demo.
+        Environment.SetEnvironmentVariable("ConnectionStrings__Default", ConnectionString);
+
+        DropDatabase();
+    }
+
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        // Môi trường Development vì Program.cs chỉ bỏ qua chuyển hướng HTTPS ở môi trường đó.
+        // Ở môi trường khác, mọi request http:// của bộ kiểm thử sẽ nhận 307 và cookie phiên
+        // không bao giờ được gửi kèm.
+        builder.UseEnvironment("Development");
+
+        // Giữ lại phép ghi đè này dù biến môi trường ở hàm khởi tạo mới là thứ thật sự có tác
+        // dụng: nó phủ nốt những chỗ đọc cấu hình MUỘN hơn — sau khi host đã dựng xong — và khi
+        // đó hai nguồn nói cùng một giá trị. Bỏ đi thì một lần đọc muộn nào đó về sau sẽ lặng lẽ
+        // rơi về appsettings.json. Xem chú thích ở ConnectionString để biết vì sao một mình nó
+        // không đủ: câu "nguồn này chạy sau nên nó thắng" đúng về thứ tự nguồn, sai về thời điểm.
+        builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(
+            new Dictionary<string, string?> { ["ConnectionStrings:Default"] = ConnectionString }));
+    }
+
+    /// <summary>
+    /// Xóa database <b>trước khi</b> máy chủ khởi động, vì chính lúc khởi động nó mới chạy
+    /// migration và nạp dữ liệu mẫu. Xóa sau là xóa mất thứ vừa nạp.
+    /// <para>
+    /// Mỗi lần chạy bắt đầu từ số 0 nên kết quả không phụ thuộc vào lần chạy trước — kể cả lần
+    /// trước có dừng giữa chừng ngay sau một phép thử vừa sửa dữ liệu.
+    /// </para>
+    /// </summary>
+    private static void DropDatabase()
+    {
+        var options = new DbContextOptionsBuilder<NailDbContext>()
+            .UseSqlServer(ConnectionString)
+            .Options;
+
+        // Bộ lọc theo tiệm ở NailDbContext hỏi cổng này ở mọi truy vấn. Ở đây không có phiên nào
+        // nên nó trả rỗng, và điều đó vô hại: lệnh xóa database không đi qua bộ lọc nào.
+        using var db = new NailDbContext(options, new NoTenantContext());
+
+        db.Database.EnsureDeleted();
+    }
+
+    private sealed class NoTenantContext : ITenantContext
+    {
+        public string? ActiveTenantId => null;
+    }
+}

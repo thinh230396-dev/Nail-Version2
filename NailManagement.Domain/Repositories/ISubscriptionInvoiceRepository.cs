@@ -11,6 +11,22 @@ namespace NailManagement.Domain.Repositories;
 /// </summary>
 public interface ISubscriptionInvoiceRepository
 {
+    /// <summary>
+    /// Toàn bộ hóa đơn đăng ký của mọi tiệm, mới nhất trước, kèm sẵn hồ sơ tiệm.
+    ///
+    /// <para>
+    /// Là phép đọc <b>toàn hệ thống</b>, không lọc theo tiệm — và đó là điểm khác mọi kho dữ
+    /// liệu khác. BR-INV-001 xếp bảng này về phía nền tảng: đây là tiền <b>tiệm trả cho
+    /// SalonSys</b>, nên nó thuộc quyền Superadmin (BR-AUD-005 cùng mô hình). Bộ lọc theo tiệm
+    /// ở <c>NailDbContext</c> cũng không áp cho nó vì Superadmin không làm việc trong tiệm nào.
+    /// </para>
+    /// <para>
+    /// Không có khoảng ngày như sổ hóa đơn bán hàng: một tiệm sinh vài hóa đơn đăng ký mỗi năm,
+    /// nên bảng này có trần tự nhiên rất thấp và trả trọn là đủ.
+    /// </para>
+    /// </summary>
+    Task<IReadOnlyList<SubscriptionInvoice>> ListAllAsync(CancellationToken cancellationToken = default);
+
     Task AddAsync(SubscriptionInvoice invoice, CancellationToken cancellationToken = default);
 
     /// <summary>

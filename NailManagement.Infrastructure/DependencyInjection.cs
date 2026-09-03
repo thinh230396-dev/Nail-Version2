@@ -61,6 +61,10 @@ public static class DependencyInjection
         services.AddScoped<IStaffRepository, StaffRepository>();
         services.AddScoped<ICustomerRepository, CustomerRepository>();
         services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+        services.AddScoped<ISalesInvoiceRepository, SalesInvoiceRepository>();
+
+        // Đọc cùng bảng hóa đơn nhưng theo GIỜ THU chứ không theo giờ lập — xem IRevenueRepository.
+        services.AddScoped<IRevenueRepository, RevenueRepository>();
         services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 
         services.AddScoped<IAuditLogger, AuditLogger>();

@@ -13,7 +13,7 @@ namespace NailManagement.Domain.Entities.Salon;
 /// của kỹ thuật viên lên rồi mới so được.
 /// </para>
 /// </summary>
-public class Appointment : ITenantOwned
+public class Appointment : ITenantOwned, IBranchOwned
 {
     private readonly List<AppointmentService> _services = [];
 
@@ -306,12 +306,24 @@ public class Appointment : ITenantOwned
         UpdatedAt = now;
     }
 
-    /// <summary>BR-APT-026 — hóa đơn gắn với lịch hẹn chuyển sang đã thanh toán thì lịch tự hoàn tất.</summary>
+    /// <summary>
+    /// BR-APT-026 — hóa đơn gắn với lịch hẹn chuyển sang đã thanh toán thì lịch tự hoàn tất.
+    /// <para>
+    /// Hỏi <c>CanCompleteFromPayment</c> chứ không hỏi bảng chuyển trạng thái chung: đường
+    /// này mở rộng hơn bảng ấy đúng một trạng thái, vì BR-INV-010 cho thu tiền cả lịch đang
+    /// <c>CheckedIn</c> (quyết định 57).
+    /// </para>
+    /// <para>
+    /// Lịch ở một trạng thái cuối — đã hủy, khách không đến — thì <b>người gọi phải hỏi luật
+    /// trước</b> thay vì để lời gọi này ném lỗi: một lần thu tiền không được thất bại vì lịch
+    /// hẹn nằm ở đâu, tiền khách đưa là có thật. Lỗi ở đây dành cho lập trình viên gọi sai chỗ.
+    /// </para>
+    /// </summary>
     public void CompleteFromPaidInvoice(DateTimeOffset now)
     {
         if (Status == AppointmentStatus.Completed) return;
 
-        if (!AppointmentLifecyclePolicy.CanTransition(Status, AppointmentStatus.Completed))
+        if (!AppointmentLifecyclePolicy.CanCompleteFromPayment(Status))
         {
             throw DomainException.ForField(
                 "status",
@@ -327,11 +339,26 @@ public class Appointment : ITenantOwned
     /// BR-APT-027 — ngoại lệ: chủ tiệm được đóng lịch khi hóa đơn còn thiếu tiền. Lễ tân
     /// KHÔNG có quyền này; phép kiểm tra vai trò nằm ở tầng use case, còn ở đây chỉ ghi
     /// lại dấu vết để về sau đối chiếu được.
+    /// <para>
+    /// Hẹp hơn <see cref="CompleteFromPaidInvoice"/> đúng một trạng thái: chỉ đóng được buổi
+    /// làm <b>đã bắt đầu</b>. Cờ <c>CompletedWithUnpaidBalance</c> là cách hệ thống "ghi chú
+    /// hoàn tất khi chưa thu đủ" như BR-APT-027 đòi — nó đi thẳng ra DTO nên màn hình và báo
+    /// cáo đều phân biệt được lịch này với một lịch hoàn tất bình thường.
+    /// </para>
     /// </summary>
     public void CompleteWithUnpaidBalance(DateTimeOffset now)
     {
-        CompleteFromPaidInvoice(now);
+        if (!AppointmentLifecyclePolicy.CanForceComplete(Status))
+        {
+            throw DomainException.ForField(
+                "status",
+                "Chỉ đóng tay được lịch hẹn đang được phục vụ. "
+                + $"Lịch này đang ở trạng thái “{AppointmentStatusText.Label(Status)}”.");
+        }
+
+        Status = AppointmentStatus.Completed;
         CompletedWithUnpaidBalance = true;
+        UpdatedAt = now;
     }
 
     public void UpdateNote(string? note, string? station, DateTimeOffset now)
