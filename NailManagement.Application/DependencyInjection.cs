@@ -7,6 +7,7 @@ using NailManagement.Application.UseCases.Branches;
 using NailManagement.Application.UseCases.Customers;
 using NailManagement.Application.UseCases.Packages;
 using NailManagement.Application.UseCases.Reports;
+using NailManagement.Application.UseCases.Sessions;
 using NailManagement.Application.UseCases.Subscriptions;
 using NailManagement.Application.UseCases.SalesInvoices;
 using NailManagement.Application.UseCases.Services;
@@ -108,6 +109,8 @@ public static class DependencyInjection
 
         // ── Hệ thống ──────────────────────────────────────────────────────────
         services.AddScoped<ListAuditLogsUseCase>();
+        services.AddScoped<ListSessionsUseCase>();
+        services.AddScoped<RevokeSessionUseCase>();
 
         return services;
     }

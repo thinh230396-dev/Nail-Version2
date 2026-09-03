@@ -28,6 +28,7 @@ public static class PermissionMatrix
         [(UserRole.SuperAdmin, Feature.UpgradeRequests)] = AccessLevel.Full,
         [(UserRole.SuperAdmin, Feature.TenantAdminAccounts)] = AccessLevel.Full,
         [(UserRole.SuperAdmin, Feature.AuditLogs)] = AccessLevel.Full,
+        [(UserRole.SuperAdmin, Feature.Sessions)] = AccessLevel.Full,
 
         // Chủ tiệm xem hóa đơn đăng ký của mình và nộp chứng từ thanh toán (BR-INV-032).
         // Mức ghi ở đây là Full vì "nộp chứng từ" là một thao tác ghi; phạm vi chỉ giới hạn
@@ -51,6 +52,11 @@ public static class PermissionMatrix
         [(UserRole.TenantAdmin, Feature.ForceCompleteAppointment)] = AccessLevel.Full,
         [(UserRole.TenantAdmin, Feature.RevenueReports)] = AccessLevel.Full,
         [(UserRole.TenantAdmin, Feature.AuditLogs)] = AccessLevel.Read,
+
+        // Phiên đăng nhập: mức Full vì thu hồi là một thao tác ghi. Phạm vi chỉ trong tiệm
+        // của họ — và như mọi ô khác, phạm vi ấy do bộ lọc dữ liệu lo, không phải bảng này.
+        // BR-AUTH-032 và BR-AUTH-033.
+        [(UserRole.TenantAdmin, Feature.Sessions)] = AccessLevel.Full,
 
         // ── Lễ tân ────────────────────────────────────────────────────────────
         // Chi nhánh, nhân viên và dịch vụ: chỉ xem. Lễ tân cần biết ai đang làm và dịch vụ

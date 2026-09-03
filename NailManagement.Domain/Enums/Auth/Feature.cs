@@ -65,5 +65,20 @@ public enum Feature
     /// hạn dùng — thông tin hợp đồng, không phải thứ cần ở quầy.
     /// </para>
     /// </summary>
-    OwnTenantProfile = 17
+    OwnTenantProfile = 17,
+
+    /// <summary>
+    /// Xem và thu hồi phiên đăng nhập đang mở — BR-AUTH-032, BR-AUTH-033.
+    /// <para>
+    /// Cố ý tách khỏi <see cref="AuditLogs"/> dù hai thứ nằm chung một màn hình. Nhật ký kiểm
+    /// toán là dữ liệu <b>chỉ đọc và không sửa được</b> (BR-AUD-002); còn ô này mang một thao
+    /// tác ghi có hậu quả tức thì — thu hồi một phiên là đá người đang làm việc ra ngoài. Gộp
+    /// chung thì cho quyền đọc nhật ký hóa ra cũng là cho quyền đá người, hai chuyện khác hẳn.
+    /// </para>
+    /// <para>
+    /// Lễ tân KHÔNG có ô này: danh sách phiên mang theo email và địa chỉ IP của mọi tài khoản
+    /// trong tiệm, không phải thứ cần ở quầy.
+    /// </para>
+    /// </summary>
+    Sessions = 18
 }
