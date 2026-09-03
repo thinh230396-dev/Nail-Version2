@@ -51,8 +51,15 @@ public static class SalonScenario
     /// <para>
     /// Tám tiếng vượt xa dịch vụ dài nhất hiện có (Combo cưới: 180 phút + 20 phút dọn dẹp), nên
     /// giả định này không còn phụ thuộc vào thứ tự danh mục nữa. Đánh đổi: các khung giờ trải ra
-    /// nhiều ngày thay vì gói trong một ngày — vô hại, vì tất cả vẫn nằm 120 ngày sau và bộ dữ
-    /// liệu mẫu không đặt gì ở tương lai.
+    /// nhiều ngày thay vì gói trong một ngày — vô hại, vì tất cả vẫn nằm 120 ngày sau.
+    /// </para>
+    /// <para>
+    /// ⚠️ <b>Mốc 120 ngày là khoảng cách với bộ dữ liệu mẫu, không phải một con số tùy ý.</b>
+    /// Bộ nạp nay dựng lịch cả ở phía trước — <c>DemoDataSeeder.UpcomingDays</c>, hiện là bảy
+    /// ngày — nên hai bên không còn tách nhau bởi ranh giới "mẫu chỉ có quá khứ" như trước. Nới
+    /// con số bên ấy tới gần 120 ngày là để dữ liệu mẫu chiếm mất khung giờ của phép thử, và
+    /// BR-APT-011 sẽ làm hàng loạt lớp đỏ vì lý do không liên quan tới thứ chúng kiểm. Khoảng
+    /// đệm hiện tại là 113 ngày.
     /// </para>
     /// <para>
     /// <c>DateTimeKind.Unspecified</c> rồi bọc bằng <c>TimeSpan.Zero</c>: giờ ghi trên bản ghi là

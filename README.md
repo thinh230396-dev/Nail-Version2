@@ -144,12 +144,20 @@ Sau khi dựng lại, database ở đúng trạng thái này:
 | AuditLogs | 6 |
 | AppSessions | 0 |
 
-### ⚠️ Dựng lại vào đúng buổi sáng hôm demo
+### Hạn dùng của một database đã dựng: bảy ngày
 
-`DemoDataSeeder` sinh sáu tháng "lịch sử" bằng cách **lùi từ thời điểm chạy seed**, và không đặt
-gì ở tương lai. Nghĩa là database dựng hôm trước thì hôm sau **cổng lễ tân trống trơn** — 0
-khách, 0 ca, doanh thu ca 0đ. Màn hình xử lý đúng cách và không lỗi, nhưng đó là màn trung tâm
-của buổi demo.
+`DemoDataSeeder` sinh phần "lịch sử" bằng cách **lùi từ thời điểm chạy seed**, nên mọi thứ trong
+đó đều neo vào ngày dựng. Trước đây nó không đặt gì ở tương lai, và database dựng hôm trước thì
+hôm sau **cổng lễ tân trống trơn** — 0 khách, 0 ca, doanh thu ca 0đ. Màn hình xử lý đúng cách và
+không lỗi, nhưng đó là màn trung tâm của buổi demo.
+
+Nay bộ nạp dựng thêm **bảy ngày lịch hẹn phía trước** (`DemoDataSeeder.UpcomingDays`), nên một
+database dựng trong vòng một tuần vẫn có ca để chạy ở quầy. Lịch tương lai chỉ dừng ở PENDING
+hoặc CONFIRMED và **không kèm hóa đơn nào**, nên báo cáo doanh thu không hề đổi.
+
+> Vẫn nên dựng lại nếu database đã quá bảy ngày — qua mốc đó thì cổng lễ tân lại trống. Và nhớ
+> rằng bộ nạp **chỉ chạy khi bảng gói còn rỗng**: một database đã có sẵn sẽ không tự mọc thêm
+> lịch tương lai chỉ vì chạy lại máy chủ, phải xóa rồi dựng từ số 0.
 
 ---
 

@@ -14,11 +14,19 @@ namespace NailManagement.Infrastructure.Persistence.Seed;
 
 /// <summary>
 /// Nạp dữ liệu mẫu cho toàn bộ nghiệp vụ: bảng giá, sáu tiệm, chi nhánh, nhân viên, dịch
-/// vụ, khách hàng, và ba mươi ngày lịch hẹn kèm hóa đơn đã thanh toán.
+/// vụ, khách hàng, và ba mươi ngày lịch hẹn kèm hóa đơn đã thanh toán, cộng
+/// <see cref="UpcomingDays"/> ngày lịch hẹn ở phía trước.
 /// <para>
 /// Có dữ liệu ba mươi ngày là điều kiện để báo cáo doanh thu (BR-REV-004) hiện số thật khi
 /// demo. Một database trống thì mọi biểu đồ đều bằng 0, và người xem không phân biệt được
 /// giữa "chưa có dữ liệu" với "tính sai".
+/// </para>
+/// <para>
+/// <b>Vì sao phải có cả lịch ở tương lai:</b> bộ nạp dựng lịch sử lùi từ đúng thời điểm nó
+/// chạy. Bản trước không đặt gì ở phía trước, nên một database nạp hôm qua để lại cổng lễ tân
+/// <b>rỗng</b> hôm nay — quầy chỉ nhìn ca của ngày đang mở. Cách phòng khi ấy là "nhớ nạp lại
+/// vào sáng hôm demo", tức một quy trình dựa vào trí nhớ dưới áp lực. Nay bộ nạp tự chừa sẵn
+/// một tuần phía trước, nên database nạp trong vòng bảy ngày vẫn có việc để làm ở quầy.
 /// </para>
 /// <para>
 /// Bộ sinh số ngẫu nhiên dùng hạt giống CỐ ĐỊNH, nên hai máy nạp lần đầu sẽ ra cùng một
@@ -29,6 +37,23 @@ public sealed class DemoDataSeeder(NailDbContext db, IPasswordHasher hasher, ICl
 {
     /// <summary>Giờ Việt Nam. Lịch hẹn phải nằm đúng khung giờ mở cửa khi nhìn trên giao diện.</summary>
     private static readonly TimeSpan VietnamOffset = TimeSpan.FromHours(7);
+
+    /// <summary>
+    /// Số ngày lịch hẹn dựng sẵn ở <b>phía trước</b> thời điểm nạp, tính từ ngày mai.
+    /// <para>
+    /// Bảy ngày là con số có lý do, không phải chọn bừa: nó phủ trọn dải chọn ngày của màn Lịch
+    /// hẹn chủ tiệm (một tuần), và nó là quãng dài nhất mà một database nạp sẵn còn dùng được
+    /// cho buổi demo mà không phải nạp lại.
+    /// </para>
+    /// <para>
+    /// ⚠️ <b>Trần trên là 120 ngày.</b> <c>SalonScenario.NextSlot()</c> của bộ xUnit đặt mọi
+    /// khung giờ thử nghiệm ở mốc 120 ngày sau, cách nhau tám tiếng, cho <b>cùng một</b> kỹ
+    /// thuật viên. Nới con số này tới gần mốc ấy là để dữ liệu mẫu chiếm mất khung giờ của phép
+    /// thử, và BR-APT-011 sẽ làm hàng loạt lớp kiểm thử đỏ vì lý do không liên quan gì tới thứ
+    /// chúng kiểm.
+    /// </para>
+    /// </summary>
+    private const int UpcomingDays = 7;
 
     private const string SharedAdminPassword = "Tenant@2026";
 
@@ -241,8 +266,20 @@ public sealed class DemoDataSeeder(NailDbContext db, IPasswordHasher hasher, ICl
 
         var technicians = staff.Where(member => member.Role == StaffRole.Technician).ToList();
 
-        // Ba mươi ngày gần nhất, tính cả hôm nay.
-        for (var dayOffset = 29; dayOffset >= 0; dayOffset--)
+        // Ba mươi ngày gần nhất tính cả hôm nay, rồi bảy ngày phía trước.
+        //
+        // Đếm lùi qua mốc 0 chứ không viết thành vòng lặp thứ hai, và thứ tự ấy có ý nghĩa: các
+        // lượt rút số ngẫu nhiên của phần quá khứ vẫn diễn ra đúng thứ tự cũ, nên lịch sử của
+        // Nailé không đổi một con số nào — đo lại sau khi sửa vẫn đúng 169 lịch hẹn, 145 hóa
+        // đơn và 72.260.000 ₫, khớp từng đồng với bản trước.
+        //
+        // ⚠️ Điều đó KHÔNG đúng với tiệm Muse. `SeedMuse` chạy sau và rút từ cùng bộ sinh số,
+        // nên các lượt rút của nó bị đẩy đi và một buổi hẹn trước kia bị hủy nay chạy trọn:
+        // 6 → 7 hóa đơn, 2.420.000 → 2.800.000 ₫. Vô hại, vì Muse có mặt để kiểm chứng cách ly
+        // và chặn ghi chứ không để trưng số tiền — không phép thử nào, cũng không con số nào
+        // trên slide, đọc tới doanh thu của nó. Ghi lại đây để lần sau ai so hai lần nạp thì
+        // biết chỗ lệch này là đã lường trước, không phải hỏng.
+        for (var dayOffset = 29; dayOffset >= -UpcomingDays; dayOffset--)
         {
             var day = now.AddDays(-dayOffset);
             var appointmentsToday = _random.Next(4, 8);
@@ -421,6 +458,11 @@ public sealed class DemoDataSeeder(NailDbContext db, IPasswordHasher hasher, ICl
         // chuyển cọc thành dòng đã thu ở BR-APT-031.
         var deposit = _random.Next(0, 5) == 0 ? 100_000L : 0L;
 
+        // Lịch được đặt trước một ngày — trừ lịch ở tương lai, vốn phải được đặt *lúc nạp*.
+        // Để nguyên phép trừ một ngày thì một lịch của tuần sau mang ngày tạo cũng ở tuần sau,
+        // tức một bản ghi khai rằng nó được tạo ở thì tương lai.
+        var bookedAt = start.AddDays(-1) <= now ? start.AddDays(-1) : now;
+
         var appointment = Appointment.Create(
             $"APT-{tenantId.Replace("TEN-", string.Empty)}-{start:yyyyMMddHHmm}-{technician.Id[^2..]}",
             tenantId,
@@ -436,7 +478,7 @@ public sealed class DemoDataSeeder(NailDbContext db, IPasswordHasher hasher, ICl
             null,
             deposit,
             DemoIds.NaileReceptionUser,
-            start.AddDays(-1));
+            bookedAt);
 
         db.Add(appointment);
         return appointment;
@@ -449,6 +491,11 @@ public sealed class DemoDataSeeder(NailDbContext db, IPasswordHasher hasher, ICl
     /// chứng luôn rằng sơ đồ trạng thái ở <c>AppointmentLifecyclePolicy</c> chấp nhận
     /// những đường đi mà nghiệp vụ thực tế cần.
     /// </para>
+    /// <para>
+    /// Ba nhánh, chia theo <paramref name="dayOffset"/>: ngày chưa tới thì dừng ở PENDING hoặc
+    /// CONFIRMED và không sinh hóa đơn; hôm nay thì rải trên các trạng thái đang diễn ra; ngày
+    /// đã qua thì đi trọn vòng đời tới lúc thu đủ tiền.
+    /// </para>
     /// </summary>
     private void PlayOutAppointment(
         Appointment appointment,
@@ -458,6 +505,23 @@ public sealed class DemoDataSeeder(NailDbContext db, IPasswordHasher hasher, ICl
         DateTimeOffset now)
     {
         var start = appointment.StartAt;
+
+        // Lịch của những ngày chưa tới: dừng ở hai trạng thái mà BR-APT-021 cho phép lúc đặt,
+        // và KHÔNG lập hóa đơn nào.
+        //
+        // Đây là ràng buộc quan trọng nhất của cả khối tương lai. Một buổi hẹn chưa diễn ra mà
+        // đã có hóa đơn đã thu là tiền chưa tồn tại được ghi vào sổ: báo cáo doanh thu
+        // (BR-REV-004) sẽ cộng nó vào, hạng khách suy từ hóa đơn đã trả đủ (BR-CUS-007) sẽ nhảy
+        // lên, và cả hai con số ấy đều xuất hiện trên slide bảo vệ. Nhờ nhánh này mà mọi phép
+        // tính tiền của bộ dữ liệu mẫu giữ nguyên đúng như trước khi có lịch ở tương lai.
+        if (dayOffset < 0)
+        {
+            // Một phần tư để nguyên PENDING: quầy lễ tân cần có việc để xác nhận lúc demo, chứ
+            // không phải một danh sách đã xong hết phần việc của chính nó.
+            if (_random.Next(0, 4) > 0) appointment.ChangeStatus(AppointmentStatus.Confirmed, now);
+
+            return;
+        }
 
         // Lịch của hôm nay: để rải trên các trạng thái đang diễn ra, cho màn hình lễ tân
         // lúc demo có việc để làm chứ không phải toàn dòng đã hoàn tất.
