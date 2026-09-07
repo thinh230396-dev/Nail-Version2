@@ -47,6 +47,7 @@ public static class DependencyInjection
         services.AddScoped<ListPackagesUseCase>();
         services.AddScoped<ListSubscriptionInvoicesUseCase>();
         services.AddScoped<ListTenantAdminAccountsUseCase>();
+        services.AddScoped<ChangeAccountStatusUseCase>();
 
         // ── Nghiệp vụ tiệm: chi nhánh ─────────────────────────────────────────
         services.AddScoped<ListBranchesUseCase>();

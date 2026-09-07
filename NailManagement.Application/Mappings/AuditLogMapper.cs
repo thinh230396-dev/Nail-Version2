@@ -29,6 +29,8 @@ public static class AuditLogMapper
         AuditEvent.PaymentReceived => "PAYMENT_RECEIVED",
         AuditEvent.RefundIssued => "REFUND_ISSUED",
         AuditEvent.PackageChanged => "PACKAGE_CHANGED",
+        AuditEvent.AccountSuspended => "ACCOUNT_SUSPENDED",
+        AuditEvent.AccountRestored => "ACCOUNT_RESTORED",
         _ => throw new ArgumentOutOfRangeException(nameof(auditEvent), auditEvent, "Sự kiện không hợp lệ.")
     };
 

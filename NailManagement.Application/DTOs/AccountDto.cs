@@ -45,3 +45,14 @@ public sealed record TenantAdminAccountDto(
     string Status,
     DateTimeOffset CreatedAt,
     IReadOnlyList<string> TenantIds);
+
+/// <summary>
+/// Lệnh khóa hoặc mở khóa một tài khoản chủ tiệm — BR-AUTH-020.
+/// <para>
+/// Cùng hình dạng với <c>ChangeTenantStatusCommand</c>, và giống nhau là cố ý: hai màn hình
+/// nằm cạnh nhau trong cổng Superadmin, nên hai lệnh nên đọc lên như nhau. <c>Status</c> nhận
+/// chuỗi thô để tầng use case tự dịch và tự báo lỗi bằng câu chữ của nghiệp vụ, thay vì để bộ
+/// nạp JSON của ASP.NET từ chối trước bằng một thông điệp mà người dùng không đọc được.
+/// </para>
+/// </summary>
+public sealed record ChangeAccountStatusCommand(string AccountId, string Status);

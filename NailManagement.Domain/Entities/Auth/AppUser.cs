@@ -128,6 +128,52 @@ public class AppUser
     }
 
     /// <summary>
+    /// BR-AUTH-020 — khóa tạm một tài khoản. Mở lại được bằng <see cref="Restore"/>.
+    /// <para>
+    /// Khác <see cref="Deactivate"/> ở chỗ căn bản, và đó là lý do hai hàm không gộp làm một:
+    /// vô hiệu là <b>vĩnh viễn</b> và dành cho người đã rời khỏi tiệm, còn khóa là biện pháp
+    /// tạm thời với một người vẫn đang làm — nợ phí, nghi ngờ lộ mật khẩu, đang điều tra một
+    /// sự việc. Trộn chúng vào một trạng thái là biến một quyết định tạm thời thành không thể
+    /// hoàn tác, trong khi BR-DEL-001 lại không cho xóa để tạo lại.
+    /// </para>
+    /// <para>
+    /// Không cần thêm gì để cưỡng chế: <see cref="IsActive"/> chỉ đúng khi trạng thái là
+    /// <c>Active</c>, và BR-AUTH-022 đọc lại tài khoản ở mỗi request — nên người bị khóa mất
+    /// quyền ngay ở request kế tiếp, đúng như khi bị vô hiệu.
+    /// </para>
+    /// <para>
+    /// Đặt <c>LockedUntil = null</c> là cố ý. Cột ấy thuộc về phép khóa tạm <b>tự động</b> sau
+    /// năm lần nhập sai, và để nguyên thì một tài khoản vừa bị khóa tay vừa đang đếm ngược một
+    /// khóa tự động — hết giờ đếm ngược, cột kia hết hiệu lực, và người đọc database không biết
+    /// tài khoản này còn bị khóa hay không. Một lý do khóa tại một thời điểm.
+    /// </para>
+    /// </summary>
+    public void Suspend(DateTimeOffset now)
+    {
+        Status = AccountStatus.Suspended;
+        LockedUntil = null;
+        FailedAttempts = 0;
+        UpdatedAt = now;
+    }
+
+    /// <summary>
+    /// Mở khóa một tài khoản đang bị khóa tạm — BR-AUTH-020.
+    /// <para>
+    /// Chỉ đưa <c>Suspended</c> về <c>Active</c>. Tài khoản đã <c>Inactive</c> KHÔNG mở lại
+    /// được bằng đường này: vô hiệu là vĩnh viễn theo đúng chú thích ở <see cref="Deactivate"/>,
+    /// và cho phép hoàn tác ở đây là lặng lẽ gỡ bỏ tính vĩnh viễn ấy. Phép kiểm nằm ở tầng use
+    /// case vì nó cần câu chữ để nói cho người dùng biết vì sao không mở được.
+    /// </para>
+    /// </summary>
+    public void Restore(DateTimeOffset now)
+    {
+        Status = AccountStatus.Active;
+        LockedUntil = null;
+        FailedAttempts = 0;
+        UpdatedAt = now;
+    }
+
+    /// <summary>
     /// Ghi nhận một lần nhập sai. Chạm ngưỡng thì khóa tạm và đặt lại bộ đếm về 0, để sau
     /// khi hết hạn khóa người dùng lại có đủ số lần thử.
     /// </summary>
