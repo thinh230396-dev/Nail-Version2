@@ -139,6 +139,32 @@ public sealed class SessionRevocationTests(SalonSysFactory factory)
         Assert.Equal("REVOKED", Text(second.Body.GetProperty("session"), "status"));
     }
 
+    /// <summary>
+    /// BR-AUD-002 — thu hồi phiên để lại vết, và bằng sự kiện của riêng nó.
+    /// <para>
+    /// Không dùng lại <c>ACCOUNT_SUSPENDED</c> dù cả hai đều là "đá một người ra ngoài": khóa
+    /// tài khoản chặn người đó đăng nhập lại, còn thu hồi phiên chỉ đóng đúng một thiết bị và
+    /// họ vào lại được ngay. Trộn hai thứ thì mọi dòng trong sổ đều đọc như biện pháp nặng.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public async Task Thu_hoi_phien_de_lai_vet_trong_nhat_ky()
+    {
+        using var victim = await SalonSysClient.ReceptionistAsync(factory);
+        using var superadmin = await SalonSysClient.SuperAdminAsync(factory);
+
+        var listed = await superadmin.GetAsync("/api/sessions");
+        var target = Sessions(listed).First(session =>
+            Text(session, "userRole") == "RECEPTIONIST"
+            && Text(session, "status") == "ACTIVE");
+
+        await superadmin.PostAsync($"/api/sessions/{Text(target, "id")}/revoke", new { });
+
+        var logs = await superadmin.GetAsync("/api/audit-logs?take=50");
+
+        Assert.Contains("SESSION_REVOKED", logs.ValuesOf("entries", "event"));
+    }
+
     private static IEnumerable<JsonElement> Sessions(ApiResponse response)
         => response.Body.GetProperty("sessions").EnumerateArray();
 }

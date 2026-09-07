@@ -51,7 +51,7 @@ public sealed class SessionsController(
         var current = requestScope.Require();
 
         var session = await revokeSessionUseCase.ExecuteAsync(
-            current.Role,
+            requestScope.ToActor(HttpContext.Connection.RemoteIpAddress?.ToString()),
             current.ActiveTenantId,
             requestScope.SessionId ?? string.Empty,
             id,

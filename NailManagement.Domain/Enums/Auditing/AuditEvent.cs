@@ -36,5 +36,16 @@ public enum AuditEvent
     AccountSuspended = 11,
 
     /// <summary>Mở khóa cho một tài khoản đang bị khóa tay — cặp đôi của <see cref="AccountSuspended"/>.</summary>
-    AccountRestored = 12
+    AccountRestored = 12,
+
+    /// <summary>
+    /// Đóng một phiên đăng nhập đang mở từ màn Bảo mật — BR-AUTH-033.
+    /// <para>
+    /// Không gộp vào <see cref="AccountSuspended"/> dù cả hai đều là "đá một người ra ngoài":
+    /// khóa tài khoản chặn người đó đăng nhập lại, còn thu hồi phiên chỉ đóng đúng một thiết bị
+    /// và họ đăng nhập lại được ngay. Một sổ trộn hai thứ này lại sẽ khiến người đọc tưởng mọi
+    /// dòng đều là biện pháp nặng.
+    /// </para>
+    /// </summary>
+    SessionRevoked = 13
 }

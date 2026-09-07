@@ -31,6 +31,7 @@ public static class AuditLogMapper
         AuditEvent.PackageChanged => "PACKAGE_CHANGED",
         AuditEvent.AccountSuspended => "ACCOUNT_SUSPENDED",
         AuditEvent.AccountRestored => "ACCOUNT_RESTORED",
+        AuditEvent.SessionRevoked => "SESSION_REVOKED",
         _ => throw new ArgumentOutOfRangeException(nameof(auditEvent), auditEvent, "Sự kiện không hợp lệ.")
     };
 
