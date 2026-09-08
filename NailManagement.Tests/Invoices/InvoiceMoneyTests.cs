@@ -101,11 +101,9 @@ public sealed class InvoiceMoneyTests(SalonSysFactory factory)
     /// Đầu dưới của cùng khoảng ấy: "giảm giá −500.000" là phép <b>cộng</b> tiền vào hóa đơn
     /// bằng cửa sau, nên nó phải bị chặn y như phép vượt trần.
     /// <para>
-    /// Kiểm ở đường <b>sửa</b> hóa đơn chứ không ở đường lập mới, vì đó là nơi luật này thật sự
-    /// được cưỡng chế: <c>CreateSalesInvoiceUseCase</c> chỉ gọi <c>ApplyDiscount</c> khi số tiền
-    /// giảm lớn hơn 0, nên một con số âm gửi lúc lập hóa đơn bị bỏ qua trong im lặng thay vì bị
-    /// từ chối. Hóa đơn sinh ra vẫn đúng tiền — nhưng người gửi không được báo là mình gõ sai.
-    /// Xem mục việc còn treo của ngày 18 trong <c>README-BACKEND-ROADMAP.md</c>.
+    /// Đường <b>sửa</b> hóa đơn luôn cưỡng chế đúng luật này vì nó gọi thẳng
+    /// <c>ApplyDiscount</c> không kèm điều kiện nào. Đường <b>lập mới</b> thì từng bỏ sót — xem
+    /// <see cref="Giam_gia_am_bi_tu_choi_khi_lap_hoa_don"/>, phép thử ra đời cùng lần vá.
     /// </para>
     /// </summary>
     [Fact]
@@ -125,6 +123,92 @@ public sealed class InvoiceMoneyTests(SalonSysFactory factory)
         Assert.Equal(HttpStatusCode.UnprocessableEntity, refused.Status);
         Assert.Equal("VALIDATION_FAILED", refused.ErrorCode);
         Assert.Contains("discount", FieldNames(refused));
+    }
+
+    /// <summary>
+    /// Cùng luật ấy ở đường <b>lập</b> hóa đơn — chỗ từng nuốt con số âm trong im lặng.
+    /// <para>
+    /// <c>CreateSalesInvoiceUseCase</c> trước đây chỉ gọi <c>ApplyDiscount</c> khi số tiền giảm
+    /// <b>lớn hơn 0</b>, nên một con số âm không bao giờ tới được nơi duy nhất biết từ chối nó.
+    /// Máy chủ trả <c>201</c> với hóa đơn giảm giá 0đ: tiền trên hóa đơn vẫn đúng, nhưng người
+    /// gửi <c>discount: -50000</c> không có cách nào biết yêu cầu của mình đã bị bỏ qua. Một
+    /// giá trị sai bị nuốt lặng lẽ tệ hơn một giá trị sai bị từ chối, vì người dùng tin là nó
+    /// đã được áp dụng.
+    /// </para>
+    /// <para>
+    /// Phép thử này và <see cref="Tip_am_bi_tu_choi_khi_lap_hoa_don"/> là hai nửa của cùng một
+    /// lỗi: điều kiện <c>&gt; 0</c> che cả hai trường.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public async Task Giam_gia_am_bi_tu_choi_khi_lap_hoa_don()
+    {
+        using var admin = await SalonSysClient.TenantAdminAsync(factory, Lumiere);
+
+        var refused = await admin.PostAsync("/api/sales-invoices", new
+        {
+            customerId = await ActiveCustomerIdAsync(admin),
+            branchId = BranchQ3,
+            lines = new[] { new { name = "Dịch vụ kiểm thử", unitPrice = 200_000L, quantity = 1 } },
+            discount = -50_000L
+        });
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, refused.Status);
+        Assert.Equal("VALIDATION_FAILED", refused.ErrorCode);
+        Assert.Contains("discount", FieldNames(refused));
+    }
+
+    /// <summary>
+    /// Tip âm cũng bị từ chối khi lập hóa đơn — <c>Guard.Money</c> chặn, miễn là lời gọi tới
+    /// được nó.
+    /// </summary>
+    [Fact]
+    public async Task Tip_am_bi_tu_choi_khi_lap_hoa_don()
+    {
+        using var admin = await SalonSysClient.TenantAdminAsync(factory, Lumiere);
+
+        var refused = await admin.PostAsync("/api/sales-invoices", new
+        {
+            customerId = await ActiveCustomerIdAsync(admin),
+            branchId = BranchQ3,
+            lines = new[] { new { name = "Dịch vụ kiểm thử", unitPrice = 200_000L, quantity = 1 } },
+            tip = -20_000L
+        });
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, refused.Status);
+        Assert.Contains("tip", FieldNames(refused));
+    }
+
+    /// <summary>
+    /// Ranh giới của lần vá: <b>số 0 vẫn phải đi lọt</b>.
+    /// <para>
+    /// <c>discount</c> và <c>tip</c> là hai trường <c>long</c> không nullable, nên "khách không
+    /// gửi gì" và "khách gửi số 0" là cùng một giá trị. Nếu lần vá đổi điều kiện thành "luôn
+    /// gọi" thay vì "gọi khi khác 0", mọi hóa đơn lập không kèm giảm giá sẽ mang một
+    /// <c>discountReason</c> được ghi vào dù không hề được giảm giá — và phép thử này là thứ
+    /// bắt được điều đó.
+    /// </para>
+    /// </summary>
+    [Fact]
+    public async Task Khong_gui_giam_gia_thi_hoa_don_van_lap_binh_thuong()
+    {
+        using var admin = await SalonSysClient.TenantAdminAsync(factory, Lumiere);
+
+        var created = await admin.PostAsync("/api/sales-invoices", new
+        {
+            customerId = await ActiveCustomerIdAsync(admin),
+            branchId = BranchQ3,
+            lines = new[] { new { name = "Dịch vụ kiểm thử", unitPrice = 200_000L, quantity = 1 } }
+        });
+
+        Assert.Equal(HttpStatusCode.Created, created.Status);
+
+        var invoice = created.Body.GetProperty("invoice");
+
+        Assert.Equal(0L, Money(invoice, "discount"));
+        Assert.Equal(0L, Money(invoice, "tip"));
+        Assert.Equal(200_000L, Money(invoice, "total"));
+        Assert.True(string.IsNullOrEmpty(Text(invoice, "discountReason")));
     }
 
     /// <summary>

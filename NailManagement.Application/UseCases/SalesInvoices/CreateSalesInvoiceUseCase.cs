@@ -76,8 +76,22 @@ public sealed class CreateSalesInvoiceUseCase(
 
             // Thứ tự bắt buộc: giảm giá SAU khi đã có đủ dòng hàng. BR-INV-021 chặn giảm giá
             // vượt tổng tiền hàng, mà tổng ấy chỉ đúng khi mọi dòng đã nằm trong hóa đơn.
-            if (command.Discount > 0) invoice.ApplyDiscount(command.Discount, command.DiscountReason, now);
-            if (command.Tip > 0) invoice.SetTip(command.Tip, now);
+            //
+            // Điều kiện là `!= 0` chứ KHÔNG phải `> 0`, và khác biệt ấy là cả nội dung của lần
+            // sửa này. Với `> 0`, một số âm không lọt được vào `ApplyDiscount` — nơi duy nhất
+            // biết từ chối nó — nên máy chủ trả 201 với hóa đơn giảm giá 0đ, và người gửi
+            // `discount: -50000` không có cách nào biết yêu cầu của mình đã bị bỏ qua. Im lặng
+            // nuốt một giá trị sai còn tệ hơn từ chối nó: người dùng tin là đã áp dụng.
+            //
+            // Số 0 vẫn bỏ qua, có chủ đích: `0` là giá trị mặc định của một trường `long` không
+            // nullable, nên "khách không gửi gì" và "khách gửi số 0" là một. Gọi
+            // `ApplyDiscount(0, reason, ...)` cho cả hai sẽ ghi một lý do giảm giá vào hóa đơn
+            // không hề được giảm giá.
+            //
+            // `UpdateSalesInvoiceUseCase` gọi thẳng hai hàm này không kèm điều kiện nào và vì
+            // vậy vẫn luôn đúng. Hai đường đi của cùng một luật nay nói giống nhau.
+            if (command.Discount != 0) invoice.ApplyDiscount(command.Discount, command.DiscountReason, now);
+            if (command.Tip != 0) invoice.SetTip(command.Tip, now);
 
             RegisterDepositIfAny(invoice, draft.Appointment, actor, now);
 
