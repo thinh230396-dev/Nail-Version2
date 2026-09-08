@@ -6,7 +6,6 @@ using NailManagement.Application.Mappings;
 using NailManagement.Domain.Common;
 using NailManagement.Domain.Entities.Salon;
 using NailManagement.Domain.Enums.Salon;
-using NailManagement.Domain.Policies;
 using NailManagement.Domain.Repositories;
 using InvoiceEntity = NailManagement.Domain.Entities.Salon.SalesInvoice;
 

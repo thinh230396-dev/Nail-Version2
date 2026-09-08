@@ -1,6 +1,6 @@
 using NailManagement.Domain.Enums.Salon;
 
-namespace NailManagement.Domain.Policies;
+namespace NailManagement.Domain.Common;
 
 /// <summary>
 /// Tên tiếng Việt của bảy trạng thái lịch hẹn, dùng trong <b>thông báo lỗi gửi tới người
@@ -8,7 +8,7 @@ namespace NailManagement.Domain.Policies;
 /// <para>
 /// Đặt ở tầng Domain vì đây là nơi luật chuyển trạng thái được cưỡng chế, và
 /// <c>DomainException</c> mang theo chính câu chữ mà người ở quầy sẽ đọc — giống hệt cách
-/// <see cref="Common.Guard"/> đã viết thông báo tiếng Việt ngay trong tầng này. Ném ra tên
+/// <see cref="Guard"/> đã viết thông báo tiếng Việt ngay trong tầng này. Ném ra tên
 /// hằng số của C# thì lễ tân nhận được "không thể chuyển từ Pending sang CheckedIn", một câu
 /// vừa sai ngôn ngữ vừa dùng những chữ không xuất hiện ở bất kỳ đâu trên màn hình.
 /// </para>

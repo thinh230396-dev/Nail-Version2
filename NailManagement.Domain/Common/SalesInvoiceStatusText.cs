@@ -1,6 +1,6 @@
 using NailManagement.Domain.Enums.Salon;
 
-namespace NailManagement.Domain.Policies;
+namespace NailManagement.Domain.Common;
 
 /// <summary>
 /// Tên tiếng Việt của năm trạng thái hóa đơn bán hàng, dùng trong <b>thông báo lỗi gửi tới
