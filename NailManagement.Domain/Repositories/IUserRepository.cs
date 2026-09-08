@@ -45,6 +45,24 @@ public interface IUserRepository
     Task<IReadOnlyList<AppUser>> ListByRoleAsync(UserRole role, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Tra nhiều tài khoản theo mã trong một lượt, khóa kết quả là <c>Id</c>.
+    /// <para>
+    /// Có mặt vì nhật ký kiểm toán chỉ lưu <b>mã</b> người thao tác (BR-AUD-003): tên đổi được
+    /// còn mã thì không, nên một bản ghi lưu tên sẽ nói sai về quá khứ ngay lần đầu ai đó đổi
+    /// tên. Cái giá là màn hình phải tự dịch mã sang tên lúc đọc, và dịch cho cả trang trong
+    /// một lượt chứ không hỏi lẻ từng dòng — ba trăm bản ghi là ba trăm lượt đi database.
+    /// </para>
+    /// <para>
+    /// Mã không tìm thấy thì <b>vắng mặt</b> khỏi từ điển thay vì có mặt với giá trị rỗng, cùng
+    /// quy ước với <see cref="ListByStaffIdsAsync"/>. Chỗ gọi phải tự quyết hiển thị gì khi
+    /// thiếu — và với nhật ký thì câu trả lời là giữ nguyên mã, vì một dòng nhật ký không có
+    /// người thực hiện thì vô dụng.
+    /// </para>
+    /// </summary>
+    Task<IReadOnlyDictionary<string, AppUser>> ListByIdsAsync(
+        IReadOnlyCollection<string> ids, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Tài khoản đăng nhập gắn với từng hồ sơ nhân viên, tra một lượt cho cả danh sách.
     /// <para>
     /// Màn quản lý nhân viên phải biết hồ sơ nào đã có tài khoản thì mới quyết định được

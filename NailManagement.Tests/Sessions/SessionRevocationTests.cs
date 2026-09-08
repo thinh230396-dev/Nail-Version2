@@ -163,6 +163,13 @@ public sealed class SessionRevocationTests(SalonSysFactory factory)
         var logs = await superadmin.GetAsync("/api/audit-logs?take=50");
 
         Assert.Contains("SESSION_REVOKED", logs.ValuesOf("entries", "event"));
+
+        // Bản ghi phải nói được AI làm, bằng tên người chứ không phải mã tài khoản. Bảng nhật ký
+        // vẫn chỉ lưu mã (BR-AUD-003); tên do use case tra lúc đọc và gửi kèm.
+        var names = logs.ValuesOf("entries", "actorDisplayName");
+
+        Assert.Contains(names, name => !string.IsNullOrWhiteSpace(name));
+        Assert.DoesNotContain(names, name => name is not null && name.StartsWith("USR-"));
     }
 
     private static IEnumerable<JsonElement> Sessions(ApiResponse response)

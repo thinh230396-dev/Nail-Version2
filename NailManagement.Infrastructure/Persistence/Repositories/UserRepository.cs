@@ -61,6 +61,29 @@ public sealed class UserRepository(NailDbContext db) : IUserRepository
             .ToListAsync(cancellationToken);
 
     /// <summary>
+    /// Tra nhiều tài khoản theo mã trong một lượt — dùng để dịch mã người thao tác ở nhật ký
+    /// kiểm toán sang tên đọc được.
+    /// <para>
+    /// <c>AsNoTracking</c> vì đây thuần túy là phép đọc để hiển thị: không lời gọi nào sửa những
+    /// tài khoản này, và theo dõi chúng chỉ tổ làm nặng bối cảnh với ba trăm bản ghi.
+    /// </para>
+    /// </summary>
+    public async Task<IReadOnlyDictionary<string, AppUser>> ListByIdsAsync(
+        IReadOnlyCollection<string> ids, CancellationToken cancellationToken = default)
+    {
+        if (ids.Count == 0) return new Dictionary<string, AppUser>();
+
+        var wanted = ids.ToArray();
+
+        var accounts = await db.AppUsers
+            .AsNoTracking()
+            .Where(user => wanted.Contains(user.Id))
+            .ToListAsync(cancellationToken);
+
+        return accounts.ToDictionary(user => user.Id);
+    }
+
+    /// <summary>
     /// Tài khoản đăng nhập của một loạt hồ sơ nhân viên, tra một lượt.
     /// <para>
     /// Bảng tài khoản KHÔNG mang <c>ITenantOwned</c> nên không có bộ lọc theo tiệm ở đây.

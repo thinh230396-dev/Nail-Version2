@@ -21,7 +21,7 @@ namespace NailManagement.Application.UseCases.Audit;
 /// dòng lệnh, đổi lấy việc bảng dễ lộ nhất có hai lớp canh.
 /// </para>
 /// </summary>
-public sealed class ListAuditLogsUseCase(IAuditLogRepository entries)
+public sealed class ListAuditLogsUseCase(IAuditLogRepository entries, IUserRepository users)
 {
     private const int DefaultTake = 100;
     private const int MaxTake = 300;
@@ -42,6 +42,28 @@ public sealed class ListAuditLogsUseCase(IAuditLogRepository entries)
         var limit = Math.Clamp(take ?? DefaultTake, 1, MaxTake);
         var found = await entries.ListAsync(scope, limit, cancellationToken);
 
-        return [.. found.Select(AuditLogMapper.ToDto)];
+        // Dịch mã người thao tác sang tên, MỘT lượt cho cả trang. Bảng nhật ký cố ý chỉ lưu mã
+        // (BR-AUD-003) vì tên đổi được còn mã thì không — nhưng "USR-SUPERADMIN" thì không ai
+        // đọc được, nên phép dịch phải xảy ra ở đâu đó, và đây là chỗ rẻ nhất.
+        //
+        // `Distinct()` là phần đáng giá: một trang nhật ký thường do vài người tạo ra, nên ba
+        // trăm dòng thường chỉ hỏi tới dăm bảy mã.
+        var actorIds = found
+            .Select(entry => entry.ActorUserId)
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Select(id => id!)
+            .Distinct()
+            .ToArray();
+
+        var actors = await users.ListByIdsAsync(actorIds, cancellationToken);
+
+        return
+        [
+            .. found.Select(entry => AuditLogMapper.ToDto(
+                entry,
+                entry.ActorUserId is not null && actors.TryGetValue(entry.ActorUserId, out var actor)
+                    ? actor.DisplayName
+                    : null))
+        ];
     }
 }

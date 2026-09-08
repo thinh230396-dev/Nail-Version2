@@ -35,10 +35,16 @@ public static class AuditLogMapper
         _ => throw new ArgumentOutOfRangeException(nameof(auditEvent), auditEvent, "Sự kiện không hợp lệ.")
     };
 
-    public static AuditLogDto ToDto(AuditLog entry) => new(
+    /// <param name="actorDisplayName">
+    /// Tên người thao tác, do use case tra một lượt cho cả trang rồi truyền vào. Mapper cố ý
+    /// KHÔNG tự đi hỏi kho dữ liệu: nó là hàm thuần, và một mapper biết truy vấn là một mapper
+    /// sẽ sinh ra ba trăm lượt đi database khi ai đó gọi nó trong vòng lặp.
+    /// </param>
+    public static AuditLogDto ToDto(AuditLog entry, string? actorDisplayName = null) => new(
         entry.Id,
         ToWireFormat(entry.Event),
         entry.ActorUserId,
+        actorDisplayName,
         entry.ActorRole is null ? null : AccountMapper.ToWireFormat(entry.ActorRole.Value),
         entry.TenantId,
         entry.TargetType,
