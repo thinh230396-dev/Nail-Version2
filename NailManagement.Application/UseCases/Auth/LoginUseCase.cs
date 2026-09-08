@@ -54,6 +54,17 @@ public sealed class LoginUseCase(
         // nào có thật trong hệ thống.
         if (user is null)
         {
+            // Và phép giấu ấy phải kín cả về THỜI GIAN, không chỉ về câu chữ.
+            //
+            // Thoát ra ngay tại đây là bỏ qua phép băm — mà phép băm tốn hàng chục mili-giây vì
+            // PBKDF2 chạy 210.000 vòng. Người bấm đồng hồ sẽ thấy "email không tồn tại" trả lời
+            // nhanh gấp hàng chục lần "sai mật khẩu", và dò ra ngay email nào có thật: đúng thứ
+            // mà dòng chú thích ngay trên tưởng đã chặn được.
+            //
+            // Nên ở đây vẫn so mật khẩu, với một cặp hash mồi không thuộc về ai. Kết quả chắc
+            // chắn là `false` và bị bỏ đi — thứ cần là thời gian đã tiêu, không phải câu trả lời.
+            _ = hasher.Verify(password, hasher.Decoy);
+
             await RecordFailureAsync(null, identifier, "Không tìm thấy tài khoản", command.Ip, cancellationToken);
             throw new InvalidCredentialsException();
         }

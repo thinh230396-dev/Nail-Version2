@@ -47,6 +47,18 @@ public static class ErrorCode
     /// <summary>Kỹ thuật viên đã có lịch hẹn chồng giờ — BR-APT-011.</summary>
     public const string SlotConflict = "SLOT_CONFLICT";
 
+    /// <summary>
+    /// Gọi quá dày từ cùng một địa chỉ IP — hiện chỉ áp cho lệnh đăng nhập.
+    /// <para>
+    /// Khác <see cref="AccountLocked"/> ở chỗ nó đếm theo <b>nguồn gọi</b> chứ không theo tài
+    /// khoản, và đó là lý do phải có cả hai. Khóa theo tài khoản chặn người dò nhiều mật khẩu
+    /// vào <i>một</i> tài khoản; mã này chặn người rải <i>một</i> mật khẩu phổ biến qua hàng
+    /// loạt tài khoản khác nhau — kịch bản mà bộ đếm theo tài khoản không bao giờ nhìn thấy,
+    /// vì mỗi tài khoản chỉ sai đúng một lần.
+    /// </para>
+    /// </summary>
+    public const string TooManyRequests = "TOO_MANY_REQUESTS";
+
     /// <summary>Lỗi không lường trước. Không bao giờ lộ chi tiết kỹ thuật ra ngoài.</summary>
     public const string Internal = "INTERNAL";
 }

@@ -1,4 +1,6 @@
+using System.Globalization;
 using System.Text.Json;
+using System.Threading.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using NailManagement.API.Common;
 using NailManagement.API.Security;
@@ -31,6 +33,74 @@ builder.Services.AddOpenApi();
 
 // Kết quả xác thực của request, do SessionMiddleware ghi vào và mọi tầng sau chỉ đọc.
 builder.Services.AddScoped<RequestScope>();
+
+// ── Giới hạn tần suất đăng nhập theo địa chỉ IP ───────────────────────────────
+// Đếm theo NGUỒN GỌI, bổ sung cho phép khóa tạm vốn đếm theo TÀI KHOẢN. Hai bộ đếm bắt hai
+// kiểu tấn công khác nhau, và thiếu cái nào cũng để hở một kiểu:
+//
+//   · Khóa theo tài khoản (5 lần / 15 phút, AuthPolicy) chặn người dò nhiều mật khẩu vào
+//     MỘT tài khoản.
+//   · Giới hạn theo IP chặn người rải MỘT mật khẩu phổ biến qua hàng loạt tài khoản khác
+//     nhau — mỗi tài khoản chỉ sai đúng một lần, nên bộ đếm kia không bao giờ thấy gì.
+//
+// Con số mặc định 30 lần / 5 phút không phải chọn bừa: kịch bản `npm run rehearsal` gọi đăng
+// nhập 10 lần từ cùng một IP, nên trần phải rộng hơn con số đó đủ để chạy lại vài lượt liên
+// tiếp mà không tự khóa mình. Đặt qua cấu hình để bộ kiểm thử nới ra và để bản triển khai
+// siết lại mà không phải sửa mã.
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddPolicy(RateLimitPolicy.Login, context =>
+    {
+        // Đọc cấu hình LÚC CÓ REQUEST, không phải lúc dựng builder.
+        //
+        // Đây là cái bẫy mà chú thích ở `SalonSysFactory` đã tả cho chuỗi kết nối, và nó lặp
+        // lại y hệt ở đây: `ConfigureAppConfiguration` của `WebApplicationFactory` chỉ được áp
+        // dụng SAU khi `builder.Configuration` đã bị đọc. Đọc sớm thì mọi phép ghi đè của bộ
+        // kiểm thử bị bỏ qua trong im lặng — trần luôn rơi về giá trị mặc định, và hàng rào
+        // trông như đang chạy trong khi nó chạy bằng một con số khác hẳn con số được yêu cầu.
+        //
+        // Tới lúc có request thì cấu hình đã dựng xong hoàn toàn. `GetFixedWindowLimiter` chỉ
+        // gọi hàm dựng tùy chọn ở lần đầu của mỗi ngăn, nên phép đọc này không lặp lại mỗi lần.
+        var settings = context.RequestServices
+            .GetRequiredService<IConfiguration>()
+            .GetSection("Auth:LoginRateLimit");
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            // IP không đọc được thì gom chung vào một ngăn thay vì cho đi tự do: thà siết nhầm
+            // còn hơn để một cấu hình proxy lạ vô hiệu hóa cả hàng rào.
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = settings.GetValue("PermitLimit", 30),
+                Window = TimeSpan.FromSeconds(settings.GetValue("WindowSeconds", 300)),
+                // Không xếp hàng: request thừa bị từ chối ngay. Giữ chúng lại chờ tới lượt là
+                // biến chính hàng rào này thành chỗ để làm nghẽn máy chủ.
+                QueueLimit = 0
+            });
+    });
+
+    // Trả đúng contract lỗi của dự án. Mặc định của bộ giới hạn là 429 với THÂN RỖNG, mà
+    // `apiClient` ở frontend đọc `error.code` để quyết hiển thị gì — thân rỗng thì màn hình
+    // báo "không đọc được phản hồi" thay vì nói cho người dùng biết họ cần chờ.
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        context.HttpContext.Response.ContentType = "application/json; charset=utf-8";
+
+        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+        {
+            context.HttpContext.Response.Headers.RetryAfter =
+                ((int)retryAfter.TotalSeconds).ToString(NumberFormatInfo.InvariantInfo);
+        }
+
+        await context.HttpContext.Response.WriteAsJsonAsync(
+            new ErrorResponse(new ErrorBody(
+                ErrorCode.TooManyRequests,
+                "Bạn đã thử đăng nhập quá nhiều lần. Vui lòng chờ vài phút rồi thử lại.",
+                [])),
+            cancellationToken);
+    };
+});
 
 var app = builder.Build();
 
@@ -76,6 +146,11 @@ if (hasFrontendBuild)
 //   3. Vai trò có quyền?       → RequirePermissionAttribute   (ngay sau bước 2)
 //   4. Dữ liệu thuộc tiệm nào? → bộ lọc toàn cục ở NailDbContext
 app.UseRouting();
+
+// Đứng NGAY SAU UseRouting và TRƯỚC SessionMiddleware, có chủ đích: chính sách gắn trên
+// endpoint nên phải có kết quả định tuyến mới đọc được, còn chặn sớm thì một trận dò mật khẩu
+// không kéo theo một lượt tra phiên trong database cho mỗi request rác.
+app.UseRateLimiter();
 
 // Đọc phiên ở MỖI request — BR-AUTH-022. Phải đứng trước mọi phép kiểm tra quyền, vì
 // chúng đều hỏi "ai đang gọi" và "đang làm việc cho tiệm nào".

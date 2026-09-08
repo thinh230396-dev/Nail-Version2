@@ -98,6 +98,19 @@ public sealed class SalonSysClient(HttpClient http) : IDisposable
 
     public Task<ApiResponse> DeleteAsync(string path) => SendAsync(HttpMethod.Delete, path);
 
+    /// <summary>
+    /// Đăng nhập và trả về <b>nguyên phản hồi HTTP</b>, để đọc được phần header.
+    /// <para>
+    /// <see cref="ApiResponse"/> chỉ giữ mã trạng thái và thân JSON, nên nó không nói được gì về
+    /// cookie phiên. Mà cookie ấy chính là chỗ mang <c>HttpOnly</c>, <c>SameSite</c> và
+    /// <c>Secure</c> — ba thuộc tính không xuất hiện ở bất kỳ đâu khác trong phản hồi, và mất
+    /// một cái là mất một hàng rào mà không màn hình nào báo.
+    /// </para>
+    /// <para>Người gọi chịu trách nhiệm giải phóng phản hồi.</para>
+    /// </summary>
+    public Task<HttpResponseMessage> LoginRawAsync(string identifier, string password)
+        => http.PostAsJsonAsync("/api/auth/login", new { identifier, password });
+
     public void Dispose() => http.Dispose();
 
     private async Task<ApiResponse> SendAsync(HttpMethod method, string path, object? body = null)

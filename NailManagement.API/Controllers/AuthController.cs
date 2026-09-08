@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using NailManagement.API.Security;
 using NailManagement.Application.DTOs;
 using NailManagement.Application.UseCases.Auth;
@@ -26,7 +27,8 @@ public sealed class AuthController(
     LogoutUseCase logoutUseCase,
     ListMyTenantsUseCase listMyTenantsUseCase,
     SelectActiveTenantUseCase selectActiveTenantUseCase,
-    RequestScope requestScope) : ControllerBase
+    RequestScope requestScope,
+    IWebHostEnvironment environment) : ControllerBase
 {
     public const string SessionCookieName = "salonsys_session";
 
@@ -41,6 +43,10 @@ public sealed class AuthController(
     /// </summary>
     [HttpPost("login")]
     [AllowWhenTenantReadonly]
+    // Chỉ endpoint này bị giới hạn theo IP. Gắn cho cả controller là chặn nhầm cả lệnh đọc
+    // phiên — thứ mà giao diện gọi ở mỗi lần tải trang — và một người dùng bình thường sẽ tự
+    // khóa mình chỉ bằng cách bấm chuyển màn hình vài chục lần.
+    [EnableRateLimiting(RateLimitPolicy.Login)]
     public async Task<IActionResult> Login([FromBody] LoginRequest? request, CancellationToken cancellationToken)
     {
         var result = await loginUseCase.ExecuteAsync(
@@ -141,9 +147,18 @@ public sealed class AuthController(
             HttpOnly = true,
             // Strict: trình duyệt không gửi cookie kèm request đến từ trang khác — chặn CSRF.
             SameSite = SameSiteMode.Strict,
-            // Frontend gọi qua proxy của Vite trên HTTP ở máy cục bộ, nên Secure phải tắt khi
-            // chạy dev, nếu không trình duyệt sẽ bỏ qua cookie.
-            Secure = false,
+            // Secure BẬT ở mọi môi trường trừ Development.
+            //
+            // Bản trước ghi cứng `false` với lý do "frontend gọi qua proxy Vite trên HTTP" —
+            // đúng cho máy đang code, nhưng nó đi thẳng vào bản triển khai và ở đó thì cookie
+            // phiên đi được qua HTTP, tức bất kỳ ai nghe được đường truyền cũng chiếm được
+            // phiên. Điều kiện nên là "đang chạy dev hay không", không phải một hằng số.
+            //
+            // Cả hai profile trong launchSettings.json đều đặt ASPNETCORE_ENVIRONMENT là
+            // Development, kể cả profile dùng lúc trình bày, nên buổi demo không bị ảnh hưởng.
+            // Ngược lại, chạy ở môi trường khác mà không có HTTPS thì đăng nhập sẽ hỏng — và đó
+            // là hành vi đúng: nó bắt người triển khai dựng TLS thay vì lặng lẽ chạy không có.
+            Secure = !environment.IsDevelopment(),
             Path = "/",
             MaxAge = TimeSpan.FromSeconds(maxAgeSeconds)
         });

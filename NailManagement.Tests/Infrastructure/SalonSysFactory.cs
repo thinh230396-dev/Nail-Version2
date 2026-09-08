@@ -30,8 +30,24 @@ namespace NailManagement.Tests.Infrastructure;
 /// khớp với bộ nạp thật.
 /// </para>
 /// </summary>
-public sealed class SalonSysFactory : WebApplicationFactory<Program>
+public class SalonSysFactory : WebApplicationFactory<Program>
 {
+    /// <summary>
+    /// Trần đăng nhập theo IP mà bộ kiểm thử dùng — cố tình đặt rất cao.
+    /// <para>
+    /// Máy chủ dựng trong bộ nhớ không có địa chỉ IP thật, nên <b>mọi</b> request của cả lần
+    /// chạy rơi vào cùng một ngăn đếm. Một lần chạy đăng nhập hơn trăm lượt; để nguyên trần
+    /// mặc định 30 thì hàng loạt lớp kiểm thử sẽ đỏ vì <c>429</c>, và đỏ vì một lý do không
+    /// liên quan gì tới thứ chúng kiểm.
+    /// </para>
+    /// <para>
+    /// Nới trần chứ không tắt hẳn bộ giới hạn: chuỗi middleware vẫn phải chạy đúng như lúc
+    /// thật. Riêng hàng rào ấy được kiểm bằng <see cref="ThrottledLoginFactory"/>, nơi trần
+    /// được siết xuống vừa đủ để chạm tới.
+    /// </para>
+    /// </summary>
+    private const string TestPermitLimit = "100000";
+
     /// <summary>
     /// Tên database cố ý khác hẳn database chạy thật. Trùng tên là mỗi lần chạy kiểm thử lại xóa
     /// sạch dữ liệu mà người dùng đang thao tác dở trên trình duyệt.
@@ -55,22 +71,41 @@ public sealed class SalonSysFactory : WebApplicationFactory<Program>
         "Server=localhost;Database=NailManagementTests;"
         + "Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True";
 
-    public SalonSysFactory()
+    public SalonSysFactory() : this(dropDatabase: true)
+    {
+    }
+
+    /// <param name="dropDatabase">
+    /// Chỉ factory dùng chung của cả lần chạy mới được xóa database. Factory phụ — như
+    /// <see cref="ThrottledLoginFactory"/> — dựng thêm một máy chủ trên <b>cùng</b> database đã
+    /// có sẵn, và nếu nó cũng xóa thì nó vừa dọn sạch dữ liệu mà mọi lớp kiểm thử khác đang dùng.
+    /// </param>
+    protected SalonSysFactory(bool dropDatabase)
     {
         // Thứ tự bắt buộc: đặt biến môi trường TRƯỚC. DropDatabase ngay dưới đây dùng thẳng
         // hằng số nên nó luôn xóa đúng chỗ, nhưng máy chủ thì đọc cấu hình — và nếu dòng này
         // chạy sau, máy chủ đã kịp nối vào database demo.
         Environment.SetEnvironmentVariable("ConnectionStrings__Default", ConnectionString);
 
-        DropDatabase();
+        if (dropDatabase) DropDatabase();
     }
+
+    /// <summary>
+    /// Trần đăng nhập theo IP mà máy chủ này chạy với. Lớp con ghi đè để siết lại.
+    /// </summary>
+    protected virtual string LoginPermitLimit => TestPermitLimit;
+
+    /// <summary>
+    /// Tên môi trường. Lớp con ghi đè để kiểm những nhánh chỉ chạy ngoài Development.
+    /// </summary>
+    protected virtual string EnvironmentName => "Development";
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         // Môi trường Development vì Program.cs chỉ bỏ qua chuyển hướng HTTPS ở môi trường đó.
         // Ở môi trường khác, mọi request http:// của bộ kiểm thử sẽ nhận 307 và cookie phiên
         // không bao giờ được gửi kèm.
-        builder.UseEnvironment("Development");
+        builder.UseEnvironment(EnvironmentName);
 
         // Giữ lại phép ghi đè này dù biến môi trường ở hàm khởi tạo mới là thứ thật sự có tác
         // dụng: nó phủ nốt những chỗ đọc cấu hình MUỘN hơn — sau khi host đã dựng xong — và khi
@@ -78,7 +113,11 @@ public sealed class SalonSysFactory : WebApplicationFactory<Program>
         // rơi về appsettings.json. Xem chú thích ở ConnectionString để biết vì sao một mình nó
         // không đủ: câu "nguồn này chạy sau nên nó thắng" đúng về thứ tự nguồn, sai về thời điểm.
         builder.ConfigureAppConfiguration((_, config) => config.AddInMemoryCollection(
-            new Dictionary<string, string?> { ["ConnectionStrings:Default"] = ConnectionString }));
+            new Dictionary<string, string?>
+            {
+                ["ConnectionStrings:Default"] = ConnectionString,
+                ["Auth:LoginRateLimit:PermitLimit"] = LoginPermitLimit
+            }));
     }
 
     /// <summary>
