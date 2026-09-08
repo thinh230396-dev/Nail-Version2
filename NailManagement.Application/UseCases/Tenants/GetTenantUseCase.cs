@@ -1,7 +1,7 @@
 using NailManagement.Application.Abstractions;
 using NailManagement.Application.Common.Exceptions;
-using NailManagement.Application.DTOs;
-using NailManagement.Domain.Repositories;
+using NailManagement.Application.DTOs.Platform;
+using NailManagement.Domain.Repositories.Platform;
 
 namespace NailManagement.Application.UseCases.Tenants;
 

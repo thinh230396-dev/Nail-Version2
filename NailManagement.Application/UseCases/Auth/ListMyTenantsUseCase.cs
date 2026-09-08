@@ -1,7 +1,8 @@
 using NailManagement.Application.Abstractions;
-using NailManagement.Application.DTOs;
-using NailManagement.Application.Mappings;
-using NailManagement.Domain.Repositories;
+using NailManagement.Application.DTOs.Platform;
+using NailManagement.Application.Mappings.Platform;
+using NailManagement.Domain.Repositories.Auth;
+using NailManagement.Domain.Repositories.Platform;
 
 namespace NailManagement.Application.UseCases.Auth;
 

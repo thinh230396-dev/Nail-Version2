@@ -1,7 +1,7 @@
 using System.Text.Json;
 using NailManagement.Application.Abstractions;
 using NailManagement.Domain.Entities.Auditing;
-using NailManagement.Domain.Repositories;
+using NailManagement.Domain.Repositories.Auditing;
 
 namespace NailManagement.Infrastructure.Auditing;
 

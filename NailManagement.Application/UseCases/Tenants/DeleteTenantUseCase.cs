@@ -1,9 +1,10 @@
 using NailManagement.Application.Abstractions;
 using NailManagement.Application.Common.Exceptions;
-using NailManagement.Application.DTOs;
+using NailManagement.Application.Common;
 using NailManagement.Domain.Entities.Platform;
 using NailManagement.Domain.Enums.Auditing;
-using NailManagement.Domain.Repositories;
+using NailManagement.Domain.Repositories.Auth;
+using NailManagement.Domain.Repositories.Platform;
 
 namespace NailManagement.Application.UseCases.Tenants;
 

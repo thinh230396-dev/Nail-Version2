@@ -1,5 +1,4 @@
 using NailManagement.Application.Common.Exceptions;
-using NailManagement.Application.DTOs;
 using NailManagement.Domain.Common;
 using NailManagement.Domain.Enums.Auth;
 

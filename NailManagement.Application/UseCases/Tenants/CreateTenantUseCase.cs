@@ -1,7 +1,9 @@
 using NailManagement.Application.Abstractions;
 using NailManagement.Application.Common.Exceptions;
-using NailManagement.Application.DTOs;
-using NailManagement.Application.Mappings;
+using NailManagement.Application.Common;
+using NailManagement.Application.DTOs.Platform;
+using NailManagement.Application.Mappings.Auth;
+using NailManagement.Application.Mappings.Platform;
 using NailManagement.Domain.Common;
 using NailManagement.Domain.Entities.Auth;
 using NailManagement.Domain.Entities.Platform;
@@ -9,7 +11,9 @@ using NailManagement.Domain.Entities.Salon;
 using NailManagement.Domain.Enums.Auditing;
 using NailManagement.Domain.Enums.Auth;
 using NailManagement.Domain.Enums.Platform;
-using NailManagement.Domain.Repositories;
+using NailManagement.Domain.Repositories.Auth;
+using NailManagement.Domain.Repositories.Platform;
+using NailManagement.Domain.Repositories.Salon;
 using NailManagement.Domain.ValueObjects;
 
 namespace NailManagement.Application.UseCases.Tenants;

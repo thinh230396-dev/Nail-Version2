@@ -1,7 +1,7 @@
-using NailManagement.Application.DTOs;
+using NailManagement.Application.DTOs.Salon;
 using NailManagement.Domain.Common;
 using NailManagement.Domain.Entities.Salon;
-using NailManagement.Domain.Repositories;
+using NailManagement.Domain.Repositories.Salon;
 
 namespace NailManagement.Application.UseCases.SalesInvoices;
 

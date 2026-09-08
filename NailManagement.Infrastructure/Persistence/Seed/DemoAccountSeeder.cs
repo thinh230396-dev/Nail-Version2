@@ -1,7 +1,7 @@
 using NailManagement.Application.Abstractions;
 using NailManagement.Domain.Entities.Auth;
 using NailManagement.Domain.Enums.Auth;
-using NailManagement.Domain.Repositories;
+using NailManagement.Domain.Repositories.Auth;
 using NailManagement.Domain.ValueObjects;
 
 namespace NailManagement.Infrastructure.Persistence.Seed;

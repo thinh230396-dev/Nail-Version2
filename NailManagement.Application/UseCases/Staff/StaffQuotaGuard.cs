@@ -1,5 +1,6 @@
 using NailManagement.Application.Common.Exceptions;
-using NailManagement.Domain.Repositories;
+using NailManagement.Domain.Repositories.Platform;
+using NailManagement.Domain.Repositories.Salon;
 
 namespace NailManagement.Application.UseCases.Staff;
 

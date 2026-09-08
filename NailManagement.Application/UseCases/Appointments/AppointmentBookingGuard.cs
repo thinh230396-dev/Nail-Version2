@@ -1,12 +1,12 @@
 using System.Globalization;
 using NailManagement.Application.Common;
 using NailManagement.Application.Common.Exceptions;
-using NailManagement.Application.DTOs;
+using NailManagement.Application.DTOs.Salon;
 using NailManagement.Domain.Common;
 using NailManagement.Domain.Entities.Salon;
 using NailManagement.Domain.Enums.Salon;
 using NailManagement.Domain.Policies;
-using NailManagement.Domain.Repositories;
+using NailManagement.Domain.Repositories.Salon;
 using StaffEntity = NailManagement.Domain.Entities.Salon.Staff;
 
 namespace NailManagement.Application.UseCases.Appointments;

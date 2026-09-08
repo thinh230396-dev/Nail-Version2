@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using NailManagement.API.Security;
-using NailManagement.Application.DTOs;
+using NailManagement.Application.Common;
+using NailManagement.Application.DTOs.Salon;
 using NailManagement.Application.UseCases.Appointments;
 using NailManagement.Domain.Enums.Auth;
 

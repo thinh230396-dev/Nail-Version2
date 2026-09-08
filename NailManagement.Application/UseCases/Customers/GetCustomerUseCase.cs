@@ -1,7 +1,7 @@
 using NailManagement.Application.Common.Exceptions;
-using NailManagement.Application.DTOs;
-using NailManagement.Application.Mappings;
-using NailManagement.Domain.Repositories;
+using NailManagement.Application.DTOs.Salon;
+using NailManagement.Application.Mappings.Salon;
+using NailManagement.Domain.Repositories.Salon;
 
 namespace NailManagement.Application.UseCases.Customers;
 

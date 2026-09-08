@@ -1,9 +1,9 @@
 using NailManagement.Application.Abstractions;
 using NailManagement.Application.Common.Exceptions;
-using NailManagement.Application.DTOs;
-using NailManagement.Application.Mappings;
+using NailManagement.Application.DTOs.Auth;
+using NailManagement.Application.Mappings.Auth;
 using NailManagement.Domain.Enums.Auth;
-using NailManagement.Domain.Repositories;
+using NailManagement.Domain.Repositories.Auth;
 
 namespace NailManagement.Application.UseCases.Sessions;
 
