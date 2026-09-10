@@ -41,6 +41,7 @@ namespace NailManagement.Application.UseCases.SalesInvoices;
 /// </summary>
 public sealed class IssueRefundUseCase(
     ISalesInvoiceRepository invoices,
+    IUnitOfWork unitOfWork,
     IAuditLogger audit,
     IIdGenerator ids,
     IClock clock)
@@ -59,41 +60,55 @@ public sealed class IssueRefundUseCase(
 
         var method = SalesInvoiceMapper.ParseMethod(command.Method);
 
-        // Không cần giao dịch nhiều bước như lúc thu tiền: hoàn tiền chỉ chạm một gốc tổng
-        // hợp — thêm một dòng âm và đóng hóa đơn lại — nên một lệnh lưu là đã trọn vẹn.
-        var refund = invoice.IssueRefund(
-            ids.NewId("PAY"),
-            method,
-            command.Amount,
-            now,
-            command.Reason ?? string.Empty,
-            actor.UserId,
-            now);
+        /*
+          Một giao dịch bao quanh, dù chỉ chạm đúng một gốc tổng hợp.
 
-        await invoices.UpdateAsync(invoice, cancellationToken);
+          Trước ngày 24 ở đây không có giao dịch nào, với lý do "hoàn tiền chỉ chạm một gốc tổng
+          hợp nên một lệnh lưu là đã trọn vẹn". Câu ấy đúng về phía dữ liệu nghiệp vụ, nhưng bỏ
+          sót lệnh ghi thứ hai: dòng nhật ký kiểm toán. Hai lệnh lưu rời nhau nghĩa là tiền có
+          thể đã hoàn xong trong khi lời gọi trả về HTTP 500 — và người ở quầy sẽ hoàn lần nữa.
 
-        await audit.RecordAsync(
-            new AuditEntry(
-                AuditEvent.RefundIssued,
+          Xem chú thích dài ở RecordPaymentUseCase để biết vì sao đổi hướng: cùng một lập luận,
+          cùng một cái giá phải trả.
+        */
+        await unitOfWork.ExecuteInTransactionAsync(async ct =>
+        {
+            var refund = invoice.IssueRefund(
+                ids.NewId("PAY"),
+                method,
+                command.Amount,
+                now,
+                command.Reason ?? string.Empty,
                 actor.UserId,
-                actor.Role,
-                invoice.TenantId,
-                nameof(SalesInvoice),
-                invoice.Id,
-                actor.Ip,
-                new Dictionary<string, string>
-                {
-                    ["invoiceCode"] = invoice.Code,
-                    ["method"] = SalesInvoiceMapper.ToWireFormat(refund.Method),
+                now);
 
-                    // Ghi trị tuyệt đối chứ không ghi dấu âm của dòng tiền: người đọc nhật ký
-                    // hỏi "hoàn bao nhiêu", còn dấu âm là quy ước của bảng thu tiền để công
-                    // thức doanh thu cộng dồn được, không phải thứ cần lặp lại ở đây.
-                    ["amount"] = command.Amount.ToString(),
-                    ["reason"] = refund.Reason ?? string.Empty,
-                    ["collected"] = invoice.Collected.ToString()
-                }),
-            cancellationToken);
+            await invoices.UpdateAsync(invoice, ct);
+
+            await audit.RecordAsync(
+                new AuditEntry(
+                    AuditEvent.RefundIssued,
+                    actor.UserId,
+                    actor.Role,
+                    invoice.TenantId,
+                    nameof(SalesInvoice),
+                    invoice.Id,
+                    actor.Ip,
+                    new Dictionary<string, string>
+                    {
+                        ["invoiceCode"] = invoice.Code,
+                        ["method"] = SalesInvoiceMapper.ToWireFormat(refund.Method),
+
+                        // Ghi trị tuyệt đối chứ không ghi dấu âm của dòng tiền: người đọc nhật ký
+                        // hỏi "hoàn bao nhiêu", còn dấu âm là quy ước của bảng thu tiền để công
+                        // thức doanh thu cộng dồn được, không phải thứ cần lặp lại ở đây.
+                        ["amount"] = command.Amount.ToString(),
+                        ["reason"] = refund.Reason ?? string.Empty,
+                        ["collected"] = invoice.Collected.ToString()
+                    }),
+                ct);
+
+            return refund;
+        }, cancellationToken);
 
         return SalesInvoiceMapper.ToDto(invoice);
     }

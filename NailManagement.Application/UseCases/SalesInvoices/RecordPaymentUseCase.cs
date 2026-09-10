@@ -58,7 +58,7 @@ public sealed class RecordPaymentUseCase(
         // bị cuộn ngược.
         var method = SalesInvoiceMapper.ParseMethod(command.Method);
 
-        var payment = await unitOfWork.ExecuteInTransactionAsync(async ct =>
+        await unitOfWork.ExecuteInTransactionAsync(async ct =>
         {
             var line = invoice.RegisterPayment(
                 ids.NewId("PAY"),
@@ -74,31 +74,45 @@ public sealed class RecordPaymentUseCase(
 
             await CompleteAppointmentIfSettledAsync(invoice, now, ct);
 
+            /*
+              Nhật ký ghi TRONG giao dịch, đổi lại quyết định cũ ở ngày 20.
+
+              Lý lẽ cũ — "nằm trong giao dịch thì nó bị cuộn ngược theo khi có lỗi, và một dòng
+              'đã thu tiền' cho khoản tiền chưa vào sổ còn tệ hơn không có dòng nào" — đúng cho
+              việc ghi nhật ký TRƯỚC khi tiền vào sổ, nhưng không đúng cho việc ghi cùng nó:
+              cuộn ngược thì cả hai cùng biến mất, nên dòng mồ côi ấy không thể tồn tại.
+
+              Còn cái giá của việc để nhật ký ở ngoài thì có thật và nặng hơn: nếu phép ghi nhật
+              ký hỏng, tiền ĐÃ vào sổ nhưng client nhận HTTP 500. Người ở quầy đọc "thất bại" và
+              thu lại lần nữa — hóa đơn có hai dòng tiền cho một lần khách trả, và đó là loại sai
+              phải đối soát bằng tay mới gỡ ra được.
+
+              Đổi lại: nhật ký hỏng thì lần thu tiền hỏng theo. BR-AUD-001 xem nhật ký là bắt
+              buộc với thao tác tài chính, nên "không ghi được vết thì không được thu" là câu trả
+              lời đúng của hệ thống này, chứ không phải một tác dụng phụ đáng tiếc.
+            */
+            await audit.RecordAsync(
+                new AuditEntry(
+                    AuditEvent.PaymentReceived,
+                    actor.UserId,
+                    actor.Role,
+                    invoice.TenantId,
+                    nameof(SalesInvoice),
+                    invoice.Id,
+                    actor.Ip,
+                    new Dictionary<string, string>
+                    {
+                        ["invoiceCode"] = invoice.Code,
+                        ["method"] = SalesInvoiceMapper.ToWireFormat(line.Method),
+                        ["amount"] = line.Amount.ToString(),
+                        ["collected"] = invoice.Collected.ToString(),
+                        ["remaining"] = invoice.Remaining.ToString(),
+                        ["invoiceStatus"] = SalesInvoiceMapper.ToWireFormat(invoice.Status)
+                    }),
+                ct);
+
             return line;
         }, cancellationToken);
-
-        // Nhật ký ghi SAU khi giao dịch chốt, cùng lý do đã ghi ở lát cắt nhân viên: nằm
-        // trong giao dịch thì nó bị cuộn ngược theo khi có lỗi, và một dòng "đã thu tiền"
-        // cho khoản tiền chưa vào sổ còn tệ hơn không có dòng nào.
-        await audit.RecordAsync(
-            new AuditEntry(
-                AuditEvent.PaymentReceived,
-                actor.UserId,
-                actor.Role,
-                invoice.TenantId,
-                nameof(SalesInvoice),
-                invoice.Id,
-                actor.Ip,
-                new Dictionary<string, string>
-                {
-                    ["invoiceCode"] = invoice.Code,
-                    ["method"] = SalesInvoiceMapper.ToWireFormat(payment.Method),
-                    ["amount"] = payment.Amount.ToString(),
-                    ["collected"] = invoice.Collected.ToString(),
-                    ["remaining"] = invoice.Remaining.ToString(),
-                    ["invoiceStatus"] = SalesInvoiceMapper.ToWireFormat(invoice.Status)
-                }),
-            cancellationToken);
 
         return SalesInvoiceMapper.ToDto(invoice);
     }
