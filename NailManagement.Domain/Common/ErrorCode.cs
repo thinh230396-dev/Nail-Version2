@@ -35,6 +35,21 @@ public static class ErrorCode
     /// <summary>Đã đăng nhập nhưng không đủ quyền. Frontend KHÔNG được đưa về màn đăng nhập.</summary>
     public const string Forbidden = "FORBIDDEN";
 
+    /// <summary>
+    /// Đã đăng nhập nhưng chưa chọn tiệm để làm việc — BR-AUTH-024, BR-AUTH-025.
+    /// <para>
+    /// Đi cùng HTTP 403 như <see cref="Forbidden"/>, nhưng là một mã riêng vì frontend phải xử
+    /// lý khác hẳn: FORBIDDEN dừng lại và báo "không có quyền", còn mã này đưa người dùng tới
+    /// màn CHỌN TIỆM — thứ họ chỉ cần bấm một cái là đi tiếp được. Gộp hai thứ lại thì chủ tiệm
+    /// quản nhiều tiệm bị báo thiếu quyền cho một việc chẳng liên quan gì tới quyền.
+    /// </para>
+    /// <para>
+    /// Giữ 403 chứ không đổi sang 409: mã HTTP không phải chỗ mang ngữ nghĩa này, và đổi nó sẽ
+    /// kéo theo mọi phép kiểm thử đang khẳng định 403 ở mười lăm đường ném.
+    /// </para>
+    /// </summary>
+    public const string TenantNotSelected = "TENANT_NOT_SELECTED";
+
     /// <summary>Không tìm thấy, hoặc bản ghi không thuộc tenant đang làm việc — BR-TENANT-013 bước 4.</summary>
     public const string NotFound = "NOT_FOUND";
 

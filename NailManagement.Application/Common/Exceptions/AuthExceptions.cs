@@ -86,5 +86,5 @@ public sealed class FeatureLockedException(string capability)
 /// </summary>
 public sealed class TenantNotSelectedException()
     : AppException(
-        ErrorCode.Forbidden,
+        ErrorCode.TenantNotSelected,
         "Chưa chọn tiệm để làm việc. Vui lòng chọn tiệm rồi thử lại.");

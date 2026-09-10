@@ -26,6 +26,10 @@ public sealed class ApiExceptionHandler(ILogger<ApiExceptionHandler> logger) : I
         [ErrorCode.AccountNotActive] = StatusCodes.Status403Forbidden,
         [ErrorCode.Unauthenticated] = StatusCodes.Status401Unauthorized,
         [ErrorCode.Forbidden] = StatusCodes.Status403Forbidden,
+
+        // Cùng 403 với Forbidden, và cố ý: phân biệt nằm ở MÃ lỗi trong thân phản hồi, không
+        // nằm ở mã HTTP. Xem chú thích ở ErrorCode.TenantNotSelected.
+        [ErrorCode.TenantNotSelected] = StatusCodes.Status403Forbidden,
         [ErrorCode.NotFound] = StatusCodes.Status404NotFound,
         [ErrorCode.TenantReadonly] = StatusCodes.Status403Forbidden,
         [ErrorCode.LimitExceeded] = StatusCodes.Status409Conflict,
