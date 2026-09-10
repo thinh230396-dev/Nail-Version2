@@ -61,6 +61,21 @@ public sealed class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
         builder.Property(u => u.CreatedAt).IsRequired();
         builder.Property(u => u.UpdatedAt).IsRequired();
 
+        // BR-AUTH-013 — mỗi hồ sơ nhân viên có NHIỀU NHẤT một tài khoản đăng nhập.
+        //
+        // Khóa ngoại phía trên bảo đảm hồ sơ được trỏ tới là có thật, nhưng không nói gì về số
+        // lượng: hai tài khoản cùng trỏ một hồ sơ vẫn hợp lệ với nó. Tầng Application có kiểm,
+        // song hai request cấp tài khoản chạy sát nhau thì cả hai cùng thấy "chưa có" rồi cùng
+        // ghi. Hậu quả không nằm ở chỗ cấp thừa một tài khoản: ListByStaffIdsAsync gom kết quả
+        // bằng ToDictionary theo mã hồ sơ, nên từ lúc đó MÀN DANH SÁCH NHÂN VIÊN ném lỗi và
+        // không ai mở được nữa.
+        //
+        // Lọc bỏ NULL vì phần lớn tài khoản không gắn hồ sơ nào — cùng lý do với chỉ số trên
+        // cột Username ngay dưới đây.
+        builder.HasIndex(u => u.StaffId)
+            .IsUnique()
+            .HasFilter("[StaffId] IS NOT NULL");
+
         // BR-VAL-001 — email duy nhất toàn hệ thống.
         builder.HasIndex(u => u.Email).IsUnique();
 

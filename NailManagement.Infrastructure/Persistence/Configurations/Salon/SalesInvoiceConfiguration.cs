@@ -41,24 +41,31 @@ public sealed class SalesInvoiceConfiguration : IEntityTypeConfiguration<SalesIn
             .HasForeignKey(invoice => invoice.TenantId)
             .OnDelete(DeleteBehavior.NoAction);
 
+        // Bốn khóa ngoại ghép, kèm cột tiệm — xem chú thích dài ở AppointmentConfiguration. Ở
+        // bảng này ràng buộc còn đáng giá hơn: một hóa đơn gắn nhầm sang khách hoặc kỹ thuật
+        // viên của tiệm khác là con số doanh thu của hai tiệm cùng sai một lúc (BR-REV-004).
         builder.HasOne(invoice => invoice.Branch)
             .WithMany()
-            .HasForeignKey(invoice => invoice.BranchId)
+            .HasForeignKey(invoice => new { invoice.BranchId, invoice.TenantId })
+            .HasPrincipalKey(branch => new { branch.Id, branch.TenantId })
             .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasOne(invoice => invoice.Customer)
             .WithMany()
-            .HasForeignKey(invoice => invoice.CustomerId)
+            .HasForeignKey(invoice => new { invoice.CustomerId, invoice.TenantId })
+            .HasPrincipalKey(customer => new { customer.Id, customer.TenantId })
             .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasOne(invoice => invoice.Appointment)
             .WithMany()
-            .HasForeignKey(invoice => invoice.AppointmentId)
+            .HasForeignKey(invoice => new { invoice.AppointmentId, invoice.TenantId })
+            .HasPrincipalKey(appointment => new { appointment.Id, appointment.TenantId })
             .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasOne(invoice => invoice.Staff)
             .WithMany()
-            .HasForeignKey(invoice => invoice.StaffId)
+            .HasForeignKey(invoice => new { invoice.StaffId, invoice.TenantId })
+            .HasPrincipalKey(staff => new { staff.Id, staff.TenantId })
             .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasMany(invoice => invoice.Lines)

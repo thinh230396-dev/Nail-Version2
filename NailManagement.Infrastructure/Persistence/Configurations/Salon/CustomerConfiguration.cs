@@ -13,6 +13,9 @@ public sealed class CustomerConfiguration : IEntityTypeConfiguration<Customer>
         builder.ToTable("Customers");
         builder.HasKey(customer => customer.Id);
 
+        // Khóa phụ cho khóa ngoại ghép — xem chú thích ở AppointmentConfiguration.
+        builder.HasAlternateKey(customer => new { customer.Id, customer.TenantId });
+
         builder.Property(customer => customer.Id).HasMaxLength(64).IsRequired();
         builder.Property(customer => customer.TenantId).HasMaxLength(64).IsRequired();
 

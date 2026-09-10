@@ -13,6 +13,9 @@ public sealed class StaffConfiguration : IEntityTypeConfiguration<Staff>
         builder.ToTable("Staff");
         builder.HasKey(staff => staff.Id);
 
+        // Khóa phụ cho khóa ngoại ghép — xem chú thích ở AppointmentConfiguration.
+        builder.HasAlternateKey(staff => new { staff.Id, staff.TenantId });
+
         builder.Property(staff => staff.Id).HasMaxLength(64).IsRequired();
         builder.Property(staff => staff.TenantId).HasMaxLength(64).IsRequired();
         builder.Property(staff => staff.BranchId).HasMaxLength(64).IsRequired();

@@ -12,6 +12,10 @@ public sealed class BranchConfiguration : IEntityTypeConfiguration<Branch>
         builder.ToTable("Branches");
         builder.HasKey(branch => branch.Id);
 
+        // Khóa phụ (Id, TenantId) — không truy vấn nào dùng nó. Nó tồn tại để các bảng khác trỏ
+        // tới bằng khóa ngoại GHÉP; xem chú thích ở AppointmentConfiguration.
+        builder.HasAlternateKey(branch => new { branch.Id, branch.TenantId });
+
         builder.Property(branch => branch.Id).HasMaxLength(64).IsRequired();
         builder.Property(branch => branch.TenantId).HasMaxLength(64).IsRequired();
         builder.Property(branch => branch.Name).HasMaxLength(80).IsRequired();
