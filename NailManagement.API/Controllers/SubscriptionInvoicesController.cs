@@ -23,19 +23,31 @@ namespace NailManagement.API.Controllers;
 [ApiController]
 [Route("api/subscription-invoices")]
 public sealed class SubscriptionInvoicesController(
-    ListSubscriptionInvoicesUseCase listInvoices) : ControllerBase
+    ListSubscriptionInvoicesUseCase listInvoices,
+    RequestScope requestScope) : ControllerBase
 {
     /// <summary>
-    /// Toàn bộ hóa đơn đăng ký của mọi tiệm, mới nhất trước.
+    /// Hóa đơn đăng ký trong tầm nhìn của người gọi: Superadmin thấy mọi tiệm, chủ tiệm chỉ
+    /// thấy tiệm mình đang làm việc (BR-INV-032).
     ///
     /// <para>
     /// <c>RequiresTenant = false</c> vì tài khoản Superadmin không thuộc tiệm nào (BR-AUTH-031),
-    /// giống các endpoint tầng nền tảng khác.
+    /// giống các endpoint tầng nền tảng khác. Việc chủ tiệm bắt buộc phải chọn tiệm trước do
+    /// use case tự đòi — cùng lối với nhật ký kiểm toán và danh sách phiên đăng nhập.
     /// </para>
     /// </summary>
     [HttpGet]
     [RequireAuth]
     [RequirePermission(Feature.SubscriptionInvoices, RequiresTenant = false)]
     public async Task<IActionResult> List(CancellationToken cancellationToken)
-        => Ok(new { invoices = await listInvoices.ExecuteAsync(cancellationToken) });
+    {
+        var current = requestScope.Require();
+
+        var invoices = await listInvoices.ExecuteAsync(
+            current.Role,
+            current.ActiveTenantId,
+            cancellationToken);
+
+        return Ok(new { invoices });
+    }
 }

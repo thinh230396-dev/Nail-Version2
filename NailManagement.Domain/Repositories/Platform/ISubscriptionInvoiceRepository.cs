@@ -8,6 +8,13 @@ namespace NailManagement.Domain.Repositories.Platform;
 /// Bảng này KHÔNG mang <c>ITenantOwned</c> nên không có bộ lọc theo tiệm. BR-TENANT-022 là
 /// lý do: hóa đơn của tiệm đã xóa mềm vẫn phải đọc được để tính doanh thu nền tảng.
 /// </para>
+/// <para>
+/// Hệ quả của việc thiếu bộ lọc tự động: phạm vi phải do <b>người gọi</b> nói ra. Vì thế cổng
+/// này có hai phép đọc tách bạch — <see cref="ListAllAsync"/> cho tầng nền tảng và
+/// <see cref="ListByTenantAsync"/> cho một tiệm — thay vì một phép đọc nhận tham số tiệm có
+/// thể để trống. Một tham số có thể để trống nghĩa là quên truyền thì lặng lẽ trả về tất cả,
+/// và đó đúng là cách lỗ rò rỉ ngày 24 đã xảy ra.
+/// </para>
 /// </summary>
 public interface ISubscriptionInvoiceRepository
 {
@@ -21,11 +28,25 @@ public interface ISubscriptionInvoiceRepository
     /// ở <c>NailDbContext</c> cũng không áp cho nó vì Superadmin không làm việc trong tiệm nào.
     /// </para>
     /// <para>
+    /// ⚠️ Chỉ gọi được sau khi đã xác định người gọi là Superadmin. Chủ tiệm phải đi qua
+    /// <see cref="ListByTenantAsync"/>.
+    /// </para>
+    /// <para>
     /// Không có khoảng ngày như sổ hóa đơn bán hàng: một tiệm sinh vài hóa đơn đăng ký mỗi năm,
     /// nên bảng này có trần tự nhiên rất thấp và trả trọn là đủ.
     /// </para>
     /// </summary>
     Task<IReadOnlyList<SubscriptionInvoice>> ListAllAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Hóa đơn đăng ký của <b>một tiệm</b>, mới nhất trước — phép đọc dành cho chủ tiệm
+    /// (BR-INV-032: họ xem hóa đơn của chính mình).
+    /// <para>
+    /// Mã tiệm là tham số bắt buộc và đến từ phiên đăng nhập ở máy chủ, không từ thân request.
+    /// </para>
+    /// </summary>
+    Task<IReadOnlyList<SubscriptionInvoice>> ListByTenantAsync(
+        string tenantId, CancellationToken cancellationToken = default);
 
     Task AddAsync(SubscriptionInvoice invoice, CancellationToken cancellationToken = default);
 
