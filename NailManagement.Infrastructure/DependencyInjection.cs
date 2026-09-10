@@ -88,6 +88,10 @@ public static class DependencyInjection
         services.AddScoped<DemoAccountSeeder>();
         services.AddScoped<DemoDataSeeder>();
 
+        // Bộ nạp của môi trường KHÔNG phải Development: một tài khoản quản trị duy nhất, mật
+        // khẩu đến từ cấu hình. Xem DemoSeedPolicy để biết vì sao hai bộ nạp không cùng chạy.
+        services.AddScoped<BootstrapAdminSeeder>();
+
         return services;
     }
 }

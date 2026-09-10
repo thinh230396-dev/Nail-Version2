@@ -1,14 +1,12 @@
 using System.Globalization;
 using System.Text.Json;
 using System.Threading.RateLimiting;
-using Microsoft.EntityFrameworkCore;
 using NailManagement.API.Common;
 using NailManagement.API.Security;
+using NailManagement.API.Startup;
 using NailManagement.Application;
 using NailManagement.Domain.Common;
 using NailManagement.Infrastructure;
-using NailManagement.Infrastructure.Persistence;
-using NailManagement.Infrastructure.Persistence.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -190,27 +188,9 @@ if (hasFrontendBuild)
 }
 
 // ── Khởi tạo database ─────────────────────────────────────────────────────────
-// Áp migration rồi nạp tài khoản demo, để lần chạy đầu trên máy sạch không cần thao tác tay.
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<NailDbContext>();
-    await db.Database.MigrateAsync();
-
-    var accountSeeder = scope.ServiceProvider.GetRequiredService<DemoAccountSeeder>();
-    var seededAccounts = await accountSeeder.SeedAsync();
-    if (seededAccounts > 0)
-    {
-        app.Logger.LogInformation("Đã nạp {Count} tài khoản demo.", seededAccounts);
-    }
-
-    // Dữ liệu nghiệp vụ phải nạp SAU tài khoản: bộ nạp này gắn tài khoản lễ tân có sẵn vào
-    // hồ sơ nhân viên vừa tạo (BR-AUTH-013), nên nó cần ba tài khoản kia đã nằm trong database.
-    var dataSeeder = scope.ServiceProvider.GetRequiredService<DemoDataSeeder>();
-    if (await dataSeeder.SeedAsync())
-    {
-        app.Logger.LogInformation("Đã nạp dữ liệu mẫu: gói dịch vụ, tiệm, nhân viên, khách hàng, lịch hẹn và hóa đơn.");
-    }
-}
+// Áp migration, rồi mở một lối đăng nhập đầu tiên: dữ liệu demo ở máy phát triển, hoặc một tài
+// khoản quản trị lấy từ cấu hình ở mọi nơi khác. Điều kiện nằm ở DemoSeedPolicy.
+await app.BootstrapDatabaseAsync();
 
 app.Run();
 

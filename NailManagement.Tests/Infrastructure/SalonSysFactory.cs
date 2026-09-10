@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using NailManagement.API.Startup;
 using NailManagement.Application.Abstractions;
 using NailManagement.Infrastructure.Persistence;
 
@@ -116,7 +117,13 @@ public class SalonSysFactory : WebApplicationFactory<Program>
             new Dictionary<string, string?>
             {
                 ["ConnectionStrings:Default"] = ConnectionString,
-                ["Auth:LoginRateLimit:PermitLimit"] = LoginPermitLimit
+                ["Auth:LoginRateLimit:PermitLimit"] = LoginPermitLimit,
+
+                // Bộ kiểm thử SỐNG BẰNG dữ liệu mẫu: hai tiệm, ba vai trò, lịch hẹn và hóa đơn
+                // đều do bộ nạp demo dựng. Từ ngày 24 bộ nạp ấy đòi một cờ bật tường minh
+                // (DemoSeedPolicy), nên harness phải tự khai ra thứ mình cần thay vì trông vào
+                // appsettings.Development.json tình cờ được nạp kèm.
+                [DemoSeedPolicy.EnabledKey] = "true"
             }));
     }
 
