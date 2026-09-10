@@ -85,7 +85,9 @@ Vài điều đáng biết:
 
 ## 2. Ba tài khoản demo
 
-Do `DemoAccountSeeder` nạp, chỉ khi bảng tài khoản còn trống.
+Do `DemoAccountSeeder` nạp, chỉ khi bảng tài khoản còn trống — và **chỉ ở môi trường Development, khi cờ `DemoSeed:Enabled` được bật** (`NailManagement.API/Startup/DemoSeedPolicy.cs`). Cờ ấy nằm sẵn trong `appsettings.Development.json` nên máy phát triển không phải làm gì thêm.
+
+Ngoài Development thì máy chủ **không** tạo tài khoản nào. Muốn có lối vào đầu tiên thì đặt hai biến môi trường `Bootstrap__AdminEmail` và `Bootstrap__AdminPassword`; thiếu chúng, máy chủ ghi một dòng cảnh báo rồi chạy tiếp với database trống. Mật khẩu cố định trong mã nguồn cố ý không còn được dùng ở bất kỳ đâu ngoài máy phát triển.
 
 | Vai | Đăng nhập | Mật khẩu | Vào được gì |
 |---|---|---|---|
@@ -164,7 +166,7 @@ hoặc CONFIRMED và **không kèm hóa đơn nào**, nên báo cáo doanh thu k
 ## 4. Kiểm thử
 
 ```bash
-dotnet test        # 82 phép thử, ~11 giây
+dotnet test        # 115 phép thử, ~16 giây
 ```
 
 Bộ xUnit dựng máy chủ **trong bộ nhớ** qua `WebApplicationFactory` và chạy trên một database
