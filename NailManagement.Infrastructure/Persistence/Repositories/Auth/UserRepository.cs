@@ -40,11 +40,18 @@ public sealed class UserRepository(NailDbContext db) : IUserRepository
         await db.SaveChangesAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Lưu những gì đã đổi trên bản ghi tài khoản đang được theo dõi.
+    /// <para>
+    /// Cố ý KHÔNG gọi <c>db.AppUsers.Update(...)</c> — xem chú thích cùng nội dung ở
+    /// <c>SessionRepository</c>. Ở bảng tài khoản, cột dễ bị ghi đè nhất là <c>Status</c>:
+    /// một lần đăng nhập thành công chỉ định ghi <c>LastLoginAt</c> và xóa bộ đếm sai mật
+    /// khẩu, nhưng với <c>Update</c> nó ghi lại cả trạng thái theo bản chụp cũ — và một tài
+    /// khoản vừa bị khóa ở request khác sẽ trở lại Active.
+    /// </para>
+    /// </summary>
     public async Task UpdateAsync(AppUser user, CancellationToken cancellationToken = default)
-    {
-        db.AppUsers.Update(user);
-        await db.SaveChangesAsync(cancellationToken);
-    }
+        => await db.SaveChangesAsync(cancellationToken);
 
     public async Task<int> CountAsync(CancellationToken cancellationToken = default)
         => await db.AppUsers.CountAsync(cancellationToken);
