@@ -1,3 +1,5 @@
+using System.Numerics;
+
 namespace NailManagement.Domain.Policies;
 
 /// <summary>
@@ -85,6 +87,29 @@ public static class RevenuePolicy
         if (invoiceSubtotal <= 0 || lineTotal <= 0) return 0L;
 
         return (long)Math.Round(netRevenue * ((decimal)lineTotal / invoiceSubtotal), MidpointRounding.ToEven);
+    }
+
+    /// <summary>Phân bổ theo giá trị dòng, chia phần dư để giữ nguyên tổng tới từng đồng.</summary>
+    public static IReadOnlyList<long> AllocateToLines(long amount, IReadOnlyList<long> lineTotals)
+    {
+        if (lineTotals.Any(total => total < 0))
+            throw new ArgumentOutOfRangeException(nameof(lineTotals), "Giá trị dòng không được âm.");
+
+        var weight = lineTotals.Aggregate(BigInteger.Zero, (sum, total) => sum + total);
+        if (weight == 0 || amount == 0) return new long[lineTotals.Count];
+
+        var magnitude = BigInteger.Abs(new BigInteger(amount));
+        var shares = new BigInteger[lineTotals.Count];
+        var remainders = new BigInteger[lineTotals.Count];
+        for (var index = 0; index < lineTotals.Count; index++)
+            shares[index] = BigInteger.DivRem(magnitude * lineTotals[index], weight, out remainders[index]);
+
+        var remaining = (int)(magnitude - shares.Aggregate(BigInteger.Zero, (sum, share) => sum + share));
+        foreach (var index in Enumerable.Range(0, shares.Length)
+                     .OrderByDescending(index => remainders[index]).ThenBy(index => index).Take(remaining))
+            shares[index]++;
+
+        return shares.Select(share => (long)(amount < 0 ? -share : share)).ToArray();
     }
 
     /// <summary>

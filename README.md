@@ -198,7 +198,7 @@ Chiều phụ thuộc chỉ đi **vào trong**; `Domain` không tham chiếu pro
 
 ```
 NailManagement.Domain          Entities · Enums · ValueObjects · Policies · Repositories (cổng)
-NailManagement.Application     UseCases (mỗi lớp một ExecuteAsync) · DTOs · Mappings · Abstractions
+NailManagement.Application     Features (UseCases · DTO · Mapper · DI theo nghiệp vụ) · Abstractions · Common
 NailManagement.Infrastructure  Persistence (DbContext, Migrations, Seed, Repositories) · Security · Auditing
 NailManagement.API             Controllers · Middleware · Security · Program.cs
 NailManagement.Tests           xUnit chạy qua HTTP thật

@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using NailManagement.API.Security;
-using NailManagement.Application.DTOs.Auth;
-using NailManagement.Application.UseCases.Auth;
+using NailManagement.Application.Features.Auth;
+using NailManagement.Application.Features.Auth.UseCases;
 
 namespace NailManagement.API.Controllers;
 

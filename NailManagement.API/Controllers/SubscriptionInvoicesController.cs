@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using NailManagement.API.Security;
-using NailManagement.Application.UseCases.Subscriptions;
+using NailManagement.Application.Features.Subscriptions.UseCases;
 using NailManagement.Domain.Enums.Auth;
 
 namespace NailManagement.API.Controllers;

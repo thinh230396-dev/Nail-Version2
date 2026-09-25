@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using NailManagement.API.Security;
 using NailManagement.Application.Common;
-using NailManagement.Application.DTOs.Platform;
-using NailManagement.Application.UseCases.Tenants;
+using NailManagement.Application.Features.Tenants;
+using NailManagement.Application.Features.Tenants.UseCases;
 using NailManagement.Domain.Enums.Auth;
 using NailManagement.Domain.Enums.Platform;
 

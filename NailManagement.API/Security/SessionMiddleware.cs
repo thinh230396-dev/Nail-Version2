@@ -1,5 +1,5 @@
 using NailManagement.API.Controllers;
-using NailManagement.Application.UseCases.Auth;
+using NailManagement.Application.Features.Auth.UseCases;
 using NailManagement.Domain.Common;
 using NailManagement.Infrastructure.Persistence.TenantScope;
 
