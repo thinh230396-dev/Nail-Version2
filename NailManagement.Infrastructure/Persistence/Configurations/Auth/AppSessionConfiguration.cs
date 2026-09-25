@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using NailManagement.Domain.Entities.Auth;
-using NailManagement.Domain.Entities.Platform;
+using NailManagement.Domain.Auth;
+using NailManagement.Domain.Platform.Tenants;
 
 namespace NailManagement.Infrastructure.Persistence.Configurations.Auth;
 

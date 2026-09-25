@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using NailManagement.Domain.Entities.Auth;
-using NailManagement.Domain.Enums.Auth;
-using NailManagement.Domain.Repositories.Auth;
+using NailManagement.Domain.Access;
+using NailManagement.Domain.Auth;
 
 namespace NailManagement.Infrastructure.Persistence.Repositories.Auth;
 

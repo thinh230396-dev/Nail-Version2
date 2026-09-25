@@ -1,4 +1,4 @@
-using NailManagement.Domain.Common;
+using NailManagement.Domain.Shared;
 
 namespace NailManagement.Application.Common.Exceptions;
 

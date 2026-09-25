@@ -1,6 +1,6 @@
 using NailManagement.Application.Common.Exceptions;
-using NailManagement.Domain.Repositories.Platform;
-using NailManagement.Domain.Repositories.Salon;
+using NailManagement.Domain.Platform.Tenants;
+using NailManagement.Domain.Salon.StaffMembers;
 
 namespace NailManagement.Application.Features.Staff;
 

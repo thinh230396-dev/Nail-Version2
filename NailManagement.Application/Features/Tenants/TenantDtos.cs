@@ -1,3 +1,7 @@
+using NailManagement.Domain.Platform.Packages;
+using NailManagement.Domain.Platform.Tenants;
+using NailManagement.Domain.ValueObjects;
+
 namespace NailManagement.Application.Features.Tenants;
 
 /// <summary>

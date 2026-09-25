@@ -1,6 +1,6 @@
-using NailManagement.Domain.Common;
-using NailManagement.Domain.Entities.Salon;
-using NailManagement.Domain.Repositories.Salon;
+using NailManagement.Domain.Salon.Appointments;
+using NailManagement.Domain.Salon.Services;
+using NailManagement.Domain.Shared;
 
 namespace NailManagement.Application.Features.SalesInvoices;
 

@@ -1,8 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using NailManagement.Domain.Entities.Platform;
-using NailManagement.Domain.Entities.Salon;
-using NailManagement.Domain.Enums.Salon;
-using NailManagement.Domain.Repositories.Platform;
+using NailManagement.Domain.Platform.Tenants;
+using NailManagement.Domain.Salon.Branches;
+using NailManagement.Domain.Salon.StaffMembers;
 
 namespace NailManagement.Infrastructure.Persistence.Repositories.Platform;
 

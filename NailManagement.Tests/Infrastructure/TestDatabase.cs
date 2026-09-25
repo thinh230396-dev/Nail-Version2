@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using NailManagement.Domain.Enums.Auth;
+using NailManagement.Domain.Auth;
+using NailManagement.Domain.Platform.Tenants;
 using NailManagement.Infrastructure.Persistence;
 
 namespace NailManagement.Tests.Infrastructure;

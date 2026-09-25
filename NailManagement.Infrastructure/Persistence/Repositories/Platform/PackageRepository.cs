@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using NailManagement.Domain.Entities.Platform;
-using NailManagement.Domain.Repositories.Platform;
+using NailManagement.Domain.Platform.Packages;
+using NailManagement.Domain.Shared;
 
 namespace NailManagement.Infrastructure.Persistence.Repositories.Platform;
 

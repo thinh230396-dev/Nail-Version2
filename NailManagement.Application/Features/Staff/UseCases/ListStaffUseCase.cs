@@ -1,7 +1,7 @@
 using NailManagement.Application.Common;
 using NailManagement.Application.Features.Staff;
-using NailManagement.Domain.Repositories.Auth;
-using NailManagement.Domain.Repositories.Salon;
+using NailManagement.Domain.Auth;
+using NailManagement.Domain.Salon.StaffMembers;
 
 namespace NailManagement.Application.Features.Staff.UseCases;
 

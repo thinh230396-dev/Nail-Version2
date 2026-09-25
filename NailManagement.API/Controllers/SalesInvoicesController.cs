@@ -3,7 +3,7 @@ using NailManagement.API.Security;
 using NailManagement.Application.Common;
 using NailManagement.Application.Features.SalesInvoices;
 using NailManagement.Application.Features.SalesInvoices.UseCases;
-using NailManagement.Domain.Enums.Auth;
+using NailManagement.Domain.Access;
 
 namespace NailManagement.API.Controllers;
 

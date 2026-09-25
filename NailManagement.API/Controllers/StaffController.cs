@@ -3,7 +3,9 @@ using NailManagement.API.Security;
 using NailManagement.Application.Common;
 using NailManagement.Application.Features.Staff;
 using NailManagement.Application.Features.Staff.UseCases;
-using NailManagement.Domain.Enums.Auth;
+using NailManagement.Domain.Access;
+using NailManagement.Domain.Salon.StaffMembers;
+using NailManagement.Domain.ValueObjects;
 
 namespace NailManagement.API.Controllers;
 

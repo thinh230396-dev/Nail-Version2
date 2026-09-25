@@ -1,9 +1,10 @@
 using NailManagement.Application.Abstractions;
 using NailManagement.Application.Common.Exceptions;
 using NailManagement.Application.Features.Customers;
-using NailManagement.Domain.Common;
-using NailManagement.Domain.Repositories.Salon;
-using CustomerEntity = NailManagement.Domain.Entities.Salon.Customer;
+using NailManagement.Domain.Salon.Customers;
+using NailManagement.Domain.Shared;
+
+using CustomerEntity = NailManagement.Domain.Salon.Customers.Customer;
 
 namespace NailManagement.Application.Features.Customers.UseCases;
 

@@ -1,6 +1,6 @@
 using NailManagement.Application.Features.Accounts;
-using NailManagement.Domain.Enums.Auth;
-using NailManagement.Domain.Repositories.Auth;
+using NailManagement.Domain.Access;
+using NailManagement.Domain.Auth;
 
 namespace NailManagement.Application.Features.Accounts.UseCases;
 

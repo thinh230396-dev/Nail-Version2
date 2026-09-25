@@ -1,5 +1,5 @@
 using NailManagement.Application.Abstractions;
-using NailManagement.Domain.Repositories.Auth;
+using NailManagement.Domain.Auth;
 
 namespace NailManagement.Application.Features.Auth.UseCases;
 

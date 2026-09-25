@@ -1,3 +1,6 @@
+using NailManagement.Domain.Auth;
+using NailManagement.Domain.ValueObjects;
+
 namespace NailManagement.Application.Features.Accounts;
 
 /// <summary>

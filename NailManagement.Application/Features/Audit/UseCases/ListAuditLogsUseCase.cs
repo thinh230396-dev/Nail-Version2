@@ -1,9 +1,9 @@
 using System.Text.Json;
 using NailManagement.Application.Common.Exceptions;
 using NailManagement.Application.Features.Audit;
-using NailManagement.Domain.Enums.Auth;
-using NailManagement.Domain.Repositories.Auditing;
-using NailManagement.Domain.Repositories.Auth;
+using NailManagement.Domain.Access;
+using NailManagement.Domain.Auditing;
+using NailManagement.Domain.Auth;
 
 namespace NailManagement.Application.Features.Audit.UseCases;
 

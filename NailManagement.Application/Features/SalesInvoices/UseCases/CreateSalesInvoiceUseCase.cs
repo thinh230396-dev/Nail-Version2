@@ -2,11 +2,14 @@ using NailManagement.Application.Abstractions;
 using NailManagement.Application.Common;
 using NailManagement.Application.Common.Exceptions;
 using NailManagement.Application.Features.SalesInvoices;
-using NailManagement.Domain.Common;
-using NailManagement.Domain.Entities.Salon;
-using NailManagement.Domain.Enums.Salon;
-using NailManagement.Domain.Repositories.Salon;
-using InvoiceEntity = NailManagement.Domain.Entities.Salon.SalesInvoice;
+using NailManagement.Domain.Salon.Appointments;
+using NailManagement.Domain.Salon.Branches;
+using NailManagement.Domain.Salon.Customers;
+using NailManagement.Domain.Salon.Invoices;
+using NailManagement.Domain.Salon.StaffMembers;
+using NailManagement.Domain.Shared;
+
+using InvoiceEntity = NailManagement.Domain.Salon.Invoices.SalesInvoice;
 
 namespace NailManagement.Application.Features.SalesInvoices.UseCases;
 

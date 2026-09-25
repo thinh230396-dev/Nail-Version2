@@ -1,8 +1,6 @@
 using System.Globalization;
-using NailManagement.Domain.Common;
-using NailManagement.Domain.Entities.Salon;
-using NailManagement.Domain.Enums.Salon;
-using NailManagement.Domain.Repositories.Salon;
+using NailManagement.Domain.Salon.Customers;
+using NailManagement.Domain.Shared;
 
 namespace NailManagement.Application.Features.Customers;
 

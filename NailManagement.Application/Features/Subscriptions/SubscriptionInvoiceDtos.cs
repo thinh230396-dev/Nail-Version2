@@ -1,3 +1,5 @@
+using NailManagement.Domain.Platform.Packages;
+
 namespace NailManagement.Application.Features.Subscriptions;
 
 /// <summary>

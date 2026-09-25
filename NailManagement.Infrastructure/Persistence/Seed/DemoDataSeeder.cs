@@ -1,13 +1,17 @@
 using Microsoft.EntityFrameworkCore;
 using NailManagement.Application.Abstractions;
-using NailManagement.Domain.Entities.Auditing;
-using NailManagement.Domain.Entities.Auth;
-using NailManagement.Domain.Entities.Platform;
-using NailManagement.Domain.Entities.Salon;
-using NailManagement.Domain.Enums.Auditing;
-using NailManagement.Domain.Enums.Auth;
-using NailManagement.Domain.Enums.Platform;
-using NailManagement.Domain.Enums.Salon;
+using NailManagement.Domain.Access;
+using NailManagement.Domain.Auditing;
+using NailManagement.Domain.Auth;
+using NailManagement.Domain.Platform.Packages;
+using NailManagement.Domain.Platform.Subscriptions;
+using NailManagement.Domain.Platform.Tenants;
+using NailManagement.Domain.Salon.Appointments;
+using NailManagement.Domain.Salon.Branches;
+using NailManagement.Domain.Salon.Customers;
+using NailManagement.Domain.Salon.Invoices;
+using NailManagement.Domain.Salon.Services;
+using NailManagement.Domain.Salon.StaffMembers;
 using NailManagement.Domain.ValueObjects;
 
 namespace NailManagement.Infrastructure.Persistence.Seed;

@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using NailManagement.Domain.Entities.Auditing;
-using NailManagement.Domain.Repositories.Auditing;
+using NailManagement.Domain.Auditing;
 
 namespace NailManagement.Infrastructure.Persistence.Repositories.Auditing;
 

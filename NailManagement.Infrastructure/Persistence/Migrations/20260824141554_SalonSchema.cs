@@ -1,3 +1,7 @@
+using NailManagement.Domain.Platform.Packages;
+using NailManagement.Domain.Salon.StaffMembers;
+using NailManagement.Domain.ValueObjects;
+
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 

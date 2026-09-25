@@ -1,3 +1,5 @@
+using NailManagement.Domain.Salon.Appointments;
+
 namespace NailManagement.Application.Features.Appointments;
 
 /// <summary>

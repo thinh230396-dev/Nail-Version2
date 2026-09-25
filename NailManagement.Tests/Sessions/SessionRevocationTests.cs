@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using NailManagement.Tests.Infrastructure;
+
 using static NailManagement.Tests.Scenarios.SalonScenario;
 
 namespace NailManagement.Tests.Sessions;

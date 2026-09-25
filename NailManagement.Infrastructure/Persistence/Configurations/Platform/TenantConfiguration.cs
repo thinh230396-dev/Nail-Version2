@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using NailManagement.Domain.Entities.Platform;
+using NailManagement.Domain.Platform.Tenants;
 
 namespace NailManagement.Infrastructure.Persistence.Configurations.Platform;
 

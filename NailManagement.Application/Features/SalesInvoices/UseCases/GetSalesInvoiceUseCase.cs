@@ -1,6 +1,6 @@
 using NailManagement.Application.Common;
 using NailManagement.Application.Features.SalesInvoices;
-using NailManagement.Domain.Repositories.Salon;
+using NailManagement.Domain.Salon.Invoices;
 
 namespace NailManagement.Application.Features.SalesInvoices.UseCases;
 

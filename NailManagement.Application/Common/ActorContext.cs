@@ -1,4 +1,4 @@
-using NailManagement.Domain.Enums.Auth;
+using NailManagement.Domain.Access;
 
 namespace NailManagement.Application.Common;
 

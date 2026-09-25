@@ -1,6 +1,6 @@
 using NailManagement.Application.Common.Exceptions;
 using NailManagement.Application.Features.Customers;
-using NailManagement.Domain.Repositories.Salon;
+using NailManagement.Domain.Salon.Customers;
 
 namespace NailManagement.Application.Features.Customers.UseCases;
 

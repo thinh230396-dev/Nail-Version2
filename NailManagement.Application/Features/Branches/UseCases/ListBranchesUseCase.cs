@@ -1,5 +1,5 @@
 using NailManagement.Application.Features.Branches;
-using NailManagement.Domain.Repositories.Salon;
+using NailManagement.Domain.Salon.Branches;
 
 namespace NailManagement.Application.Features.Branches.UseCases;
 

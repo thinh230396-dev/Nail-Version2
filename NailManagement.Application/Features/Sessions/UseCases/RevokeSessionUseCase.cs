@@ -2,10 +2,9 @@ using NailManagement.Application.Abstractions;
 using NailManagement.Application.Common;
 using NailManagement.Application.Common.Exceptions;
 using NailManagement.Application.Features.Sessions;
-using NailManagement.Domain.Entities.Auth;
-using NailManagement.Domain.Enums.Auditing;
-using NailManagement.Domain.Enums.Auth;
-using NailManagement.Domain.Repositories.Auth;
+using NailManagement.Domain.Access;
+using NailManagement.Domain.Auditing;
+using NailManagement.Domain.Auth;
 
 namespace NailManagement.Application.Features.Sessions.UseCases;
 

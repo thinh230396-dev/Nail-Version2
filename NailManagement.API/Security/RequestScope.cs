@@ -1,6 +1,6 @@
 using NailManagement.Application.Common;
 using NailManagement.Application.Features.Auth;
-using NailManagement.Domain.Common;
+using NailManagement.Domain.Shared;
 
 namespace NailManagement.API.Security;
 

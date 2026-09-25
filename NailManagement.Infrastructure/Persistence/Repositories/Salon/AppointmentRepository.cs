@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using NailManagement.Domain.Entities.Salon;
-using NailManagement.Domain.Policies;
-using NailManagement.Domain.Repositories.Salon;
+using NailManagement.Domain.Salon.Appointments;
+using NailManagement.Domain.Salon.StaffMembers;
+using NailManagement.Domain.Shared;
 
 namespace NailManagement.Infrastructure.Persistence.Repositories.Salon;
 

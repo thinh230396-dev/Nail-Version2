@@ -1,6 +1,5 @@
 using NailManagement.Application.Features.Packages;
-using NailManagement.Domain.Entities.Platform;
-using NailManagement.Domain.Enums.Platform;
+using NailManagement.Domain.Platform.Subscriptions;
 
 namespace NailManagement.Application.Features.Subscriptions;
 

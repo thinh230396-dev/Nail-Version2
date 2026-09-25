@@ -5,7 +5,8 @@ using NailManagement.API.Common;
 using NailManagement.API.Security;
 using NailManagement.API.Startup;
 using NailManagement.Application;
-using NailManagement.Domain.Common;
+using NailManagement.Domain.Access;
+using NailManagement.Domain.Shared;
 using NailManagement.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);

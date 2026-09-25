@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Net;
 using NailManagement.Tests.Infrastructure;
+
 using static NailManagement.Tests.Scenarios.SalonScenario;
 
 namespace NailManagement.Tests.Appointments;

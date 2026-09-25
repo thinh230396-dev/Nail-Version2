@@ -1,11 +1,11 @@
 using System.Globalization;
 using System.Text.Json;
 using NailManagement.Application.Features.Tenants;
-using NailManagement.Domain.Common;
-using NailManagement.Domain.Entities.Auth;
-using NailManagement.Domain.Entities.Salon;
-using NailManagement.Domain.Enums.Salon;
-using StaffEntity = NailManagement.Domain.Entities.Salon.Staff;
+using NailManagement.Domain.Auth;
+using NailManagement.Domain.Salon.StaffMembers;
+using NailManagement.Domain.Shared;
+
+using StaffEntity = NailManagement.Domain.Salon.StaffMembers.Staff;
 
 namespace NailManagement.Application.Features.Staff;
 

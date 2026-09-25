@@ -1,8 +1,8 @@
 using NailManagement.Application.Abstractions;
 using NailManagement.Application.Common.Exceptions;
 using NailManagement.Application.Features.Branches;
-using NailManagement.Domain.Common;
-using NailManagement.Domain.Repositories.Salon;
+using NailManagement.Domain.Salon.Branches;
+using NailManagement.Domain.Shared;
 
 namespace NailManagement.Application.Features.Branches.UseCases;
 

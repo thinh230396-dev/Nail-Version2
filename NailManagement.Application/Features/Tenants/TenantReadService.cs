@@ -1,7 +1,5 @@
-using NailManagement.Domain.Entities.Auth;
-using NailManagement.Domain.Entities.Platform;
-using NailManagement.Domain.Repositories.Auth;
-using NailManagement.Domain.Repositories.Platform;
+using NailManagement.Domain.Auth;
+using NailManagement.Domain.Platform.Tenants;
 
 namespace NailManagement.Application.Features.Tenants;
 

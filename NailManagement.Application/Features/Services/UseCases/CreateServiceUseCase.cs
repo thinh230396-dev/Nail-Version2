@@ -1,10 +1,10 @@
 using NailManagement.Application.Abstractions;
 using NailManagement.Application.Common.Exceptions;
 using NailManagement.Application.Features.Services;
-using NailManagement.Domain.Common;
-using NailManagement.Domain.Policies;
-using NailManagement.Domain.Repositories.Salon;
-using ServiceEntity = NailManagement.Domain.Entities.Salon.Service;
+using NailManagement.Domain.Salon.Services;
+using NailManagement.Domain.Shared;
+
+using ServiceEntity = NailManagement.Domain.Salon.Services.Service;
 
 namespace NailManagement.Application.Features.Services.UseCases;
 

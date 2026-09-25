@@ -1,3 +1,6 @@
+using NailManagement.Domain.Salon.Customers;
+using NailManagement.Domain.ValueObjects;
+
 namespace NailManagement.Application.Features.Customers;
 
 /// <summary>

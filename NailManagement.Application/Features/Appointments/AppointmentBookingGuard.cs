@@ -1,12 +1,14 @@
 using System.Globalization;
 using NailManagement.Application.Common;
 using NailManagement.Application.Common.Exceptions;
-using NailManagement.Domain.Common;
-using NailManagement.Domain.Entities.Salon;
-using NailManagement.Domain.Enums.Salon;
-using NailManagement.Domain.Policies;
-using NailManagement.Domain.Repositories.Salon;
-using StaffEntity = NailManagement.Domain.Entities.Salon.Staff;
+using NailManagement.Domain.Salon.Appointments;
+using NailManagement.Domain.Salon.Branches;
+using NailManagement.Domain.Salon.Customers;
+using NailManagement.Domain.Salon.Services;
+using NailManagement.Domain.Salon.StaffMembers;
+using NailManagement.Domain.Shared;
+
+using StaffEntity = NailManagement.Domain.Salon.StaffMembers.Staff;
 
 namespace NailManagement.Application.Features.Appointments;
 

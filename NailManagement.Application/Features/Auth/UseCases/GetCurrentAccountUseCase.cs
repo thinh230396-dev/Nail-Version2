@@ -3,10 +3,11 @@ using NailManagement.Application.Common.Exceptions;
 using NailManagement.Application.Features.Accounts;
 using NailManagement.Application.Features.Auth;
 using NailManagement.Application.Features.Tenants;
-using NailManagement.Domain.Enums.Auth;
-using NailManagement.Domain.Repositories.Auth;
-using NailManagement.Domain.Repositories.Platform;
-using NailManagement.Domain.Repositories.Salon;
+using NailManagement.Domain.Access;
+using NailManagement.Domain.Auth;
+using NailManagement.Domain.Platform.Tenants;
+using NailManagement.Domain.Salon.StaffMembers;
+using NailManagement.Domain.Shared;
 
 namespace NailManagement.Application.Features.Auth.UseCases;
 

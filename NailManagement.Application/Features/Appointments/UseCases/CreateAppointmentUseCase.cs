@@ -2,9 +2,9 @@ using NailManagement.Application.Abstractions;
 using NailManagement.Application.Common;
 using NailManagement.Application.Common.Exceptions;
 using NailManagement.Application.Features.Appointments;
-using NailManagement.Domain.Policies;
-using NailManagement.Domain.Repositories.Salon;
-using AppointmentEntity = NailManagement.Domain.Entities.Salon.Appointment;
+using NailManagement.Domain.Salon.Appointments;
+
+using AppointmentEntity = NailManagement.Domain.Salon.Appointments.Appointment;
 
 namespace NailManagement.Application.Features.Appointments.UseCases;
 

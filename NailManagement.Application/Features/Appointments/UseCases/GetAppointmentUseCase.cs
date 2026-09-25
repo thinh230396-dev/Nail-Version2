@@ -1,7 +1,7 @@
 using NailManagement.Application.Abstractions;
 using NailManagement.Application.Common;
 using NailManagement.Application.Features.Appointments;
-using NailManagement.Domain.Repositories.Salon;
+using NailManagement.Domain.Salon.Appointments;
 
 namespace NailManagement.Application.Features.Appointments.UseCases;
 

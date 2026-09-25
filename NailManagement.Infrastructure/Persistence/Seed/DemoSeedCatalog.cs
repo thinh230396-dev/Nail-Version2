@@ -1,6 +1,7 @@
 using System.Text.Json;
-using NailManagement.Domain.Enums.Platform;
-using NailManagement.Domain.Enums.Salon;
+using NailManagement.Domain.Platform.Packages;
+using NailManagement.Domain.Salon.StaffMembers;
+using NailManagement.Domain.ValueObjects;
 
 namespace NailManagement.Infrastructure.Persistence.Seed;
 

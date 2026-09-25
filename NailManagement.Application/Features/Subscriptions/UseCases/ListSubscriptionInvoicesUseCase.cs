@@ -1,8 +1,8 @@
 using NailManagement.Application.Abstractions;
 using NailManagement.Application.Common.Exceptions;
 using NailManagement.Application.Features.Subscriptions;
-using NailManagement.Domain.Enums.Auth;
-using NailManagement.Domain.Repositories.Platform;
+using NailManagement.Domain.Access;
+using NailManagement.Domain.Platform.Subscriptions;
 
 namespace NailManagement.Application.Features.Subscriptions.UseCases;
 

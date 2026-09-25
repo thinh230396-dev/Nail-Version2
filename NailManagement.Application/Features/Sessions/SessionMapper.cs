@@ -1,5 +1,5 @@
 using NailManagement.Application.Features.Accounts;
-using NailManagement.Domain.Entities.Auth;
+using NailManagement.Domain.Auth;
 
 namespace NailManagement.Application.Features.Sessions;
 

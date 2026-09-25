@@ -1,5 +1,7 @@
 using System.Net;
+using NailManagement.Domain.Shared;
 using NailManagement.Tests.Infrastructure;
+
 using static NailManagement.Tests.Scenarios.SalonScenario;
 
 namespace NailManagement.Tests.Invoices;

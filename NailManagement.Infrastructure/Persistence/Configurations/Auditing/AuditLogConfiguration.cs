@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using NailManagement.Domain.Entities.Auditing;
+using NailManagement.Domain.Auditing;
 
 namespace NailManagement.Infrastructure.Persistence.Configurations.Auditing;
 

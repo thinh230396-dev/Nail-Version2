@@ -1,4 +1,4 @@
-using NailManagement.Domain.Policies;
+using NailManagement.Domain.Salon.Revenue;
 
 namespace NailManagement.Tests.Reports;
 

@@ -1,6 +1,5 @@
-using NailManagement.Domain.Common;
-using NailManagement.Domain.Entities.Salon;
-using NailManagement.Domain.Enums.Salon;
+using NailManagement.Domain.Salon.Services;
+using NailManagement.Domain.Shared;
 
 namespace NailManagement.Application.Features.Services;
 

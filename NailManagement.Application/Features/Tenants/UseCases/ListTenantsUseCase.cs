@@ -1,6 +1,6 @@
 using NailManagement.Application.Abstractions;
 using NailManagement.Application.Features.Tenants;
-using NailManagement.Domain.Repositories.Platform;
+using NailManagement.Domain.Platform.Tenants;
 
 namespace NailManagement.Application.Features.Tenants.UseCases;
 

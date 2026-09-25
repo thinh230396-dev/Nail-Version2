@@ -1,5 +1,4 @@
-using NailManagement.Domain.Entities.Salon;
-using NailManagement.Domain.Enums.Salon;
+using NailManagement.Domain.Salon.Branches;
 
 namespace NailManagement.Application.Features.Branches;
 

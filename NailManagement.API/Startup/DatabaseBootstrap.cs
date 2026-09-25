@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using NailManagement.Domain.ValueObjects;
 using NailManagement.Infrastructure.Persistence;
 using NailManagement.Infrastructure.Persistence.Seed;
 

@@ -3,8 +3,10 @@ using NailManagement.API.Security;
 using NailManagement.Application.Common;
 using NailManagement.Application.Features.Tenants;
 using NailManagement.Application.Features.Tenants.UseCases;
-using NailManagement.Domain.Enums.Auth;
-using NailManagement.Domain.Enums.Platform;
+using NailManagement.Domain.Access;
+using NailManagement.Domain.Platform.Packages;
+using NailManagement.Domain.Platform.Tenants;
+using NailManagement.Domain.ValueObjects;
 
 namespace NailManagement.API.Controllers;
 

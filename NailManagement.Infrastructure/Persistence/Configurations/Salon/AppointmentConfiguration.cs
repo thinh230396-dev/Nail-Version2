@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using NailManagement.Domain.Entities.Platform;
-using NailManagement.Domain.Entities.Salon;
+using NailManagement.Domain.Platform.Tenants;
+using NailManagement.Domain.Salon.Appointments;
 
 namespace NailManagement.Infrastructure.Persistence.Configurations.Salon;
 

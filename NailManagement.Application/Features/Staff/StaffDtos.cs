@@ -1,3 +1,6 @@
+using NailManagement.Domain.Salon.StaffMembers;
+using NailManagement.Domain.ValueObjects;
+
 namespace NailManagement.Application.Features.Staff;
 
 /// <summary>

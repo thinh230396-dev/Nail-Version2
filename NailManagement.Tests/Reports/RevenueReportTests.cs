@@ -1,9 +1,8 @@
 using NailManagement.Application.Abstractions;
 using NailManagement.Application.Features.Reports;
 using NailManagement.Application.Features.Reports.UseCases;
-using NailManagement.Domain.Entities.Salon;
-using NailManagement.Domain.Enums.Salon;
-using NailManagement.Domain.Repositories.Salon;
+using NailManagement.Domain.Salon.Invoices;
+using NailManagement.Domain.Salon.Revenue;
 
 namespace NailManagement.Tests.Reports;
 

@@ -1,5 +1,5 @@
 using NailManagement.Application.Features.Services;
-using NailManagement.Domain.Repositories.Salon;
+using NailManagement.Domain.Salon.Services;
 
 namespace NailManagement.Application.Features.Services.UseCases;
 

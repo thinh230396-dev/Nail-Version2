@@ -3,7 +3,7 @@ using NailManagement.API.Security;
 using NailManagement.Application.Common;
 using NailManagement.Application.Features.Appointments;
 using NailManagement.Application.Features.Appointments.UseCases;
-using NailManagement.Domain.Enums.Auth;
+using NailManagement.Domain.Access;
 
 namespace NailManagement.API.Controllers;
 

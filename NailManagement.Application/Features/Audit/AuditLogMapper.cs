@@ -1,7 +1,6 @@
 using System.Text.Json;
 using NailManagement.Application.Features.Accounts;
-using NailManagement.Domain.Entities.Auditing;
-using NailManagement.Domain.Enums.Auditing;
+using NailManagement.Domain.Auditing;
 
 namespace NailManagement.Application.Features.Audit;
 

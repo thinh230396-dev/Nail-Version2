@@ -1,5 +1,5 @@
 using System.Net;
-using NailManagement.Domain.Enums.Auth;
+using NailManagement.Domain.Auth;
 using NailManagement.Tests.Infrastructure;
 
 namespace NailManagement.Tests.Authorization;

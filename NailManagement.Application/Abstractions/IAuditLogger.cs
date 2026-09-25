@@ -1,5 +1,8 @@
-using NailManagement.Domain.Enums.Auditing;
-using NailManagement.Domain.Enums.Auth;
+using NailManagement.Domain.Access;
+using NailManagement.Domain.Auditing;
+using NailManagement.Domain.Auth;
+using NailManagement.Domain.Platform.Tenants;
+using NailManagement.Domain.Salon.Invoices;
 
 namespace NailManagement.Application.Abstractions;
 

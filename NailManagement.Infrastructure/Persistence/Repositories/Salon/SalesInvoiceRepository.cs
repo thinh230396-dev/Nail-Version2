@@ -1,8 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using NailManagement.Application.Abstractions;
-using NailManagement.Domain.Entities.Salon;
-using NailManagement.Domain.Enums.Salon;
-using NailManagement.Domain.Repositories.Salon;
+using NailManagement.Domain.Salon.Invoices;
+using NailManagement.Domain.Shared;
 
 namespace NailManagement.Infrastructure.Persistence.Repositories.Salon;
 

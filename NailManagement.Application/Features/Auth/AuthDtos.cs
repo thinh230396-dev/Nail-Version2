@@ -1,6 +1,9 @@
 using NailManagement.Application.Features.Accounts;
 using NailManagement.Application.Features.Tenants;
-using NailManagement.Domain.Enums.Auth;
+using NailManagement.Domain.Access;
+using NailManagement.Domain.Platform.Tenants;
+using NailManagement.Domain.Salon.Branches;
+using NailManagement.Domain.ValueObjects;
 
 namespace NailManagement.Application.Features.Auth;
 

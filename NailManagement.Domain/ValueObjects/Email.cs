@@ -1,5 +1,5 @@
 using System.Text.RegularExpressions;
-using NailManagement.Domain.Common;
+using NailManagement.Domain.Shared;
 
 namespace NailManagement.Domain.ValueObjects;
 

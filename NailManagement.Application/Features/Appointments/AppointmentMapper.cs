@@ -1,8 +1,8 @@
-using NailManagement.Domain.Common;
-using NailManagement.Domain.Entities.Salon;
-using NailManagement.Domain.Enums.Salon;
-using NailManagement.Domain.Policies;
-using StaffEntity = NailManagement.Domain.Entities.Salon.Staff;
+using NailManagement.Domain.Salon.Appointments;
+using NailManagement.Domain.Salon.Customers;
+using NailManagement.Domain.Shared;
+
+using StaffEntity = NailManagement.Domain.Salon.StaffMembers.Staff;
 
 namespace NailManagement.Application.Features.Appointments;
 

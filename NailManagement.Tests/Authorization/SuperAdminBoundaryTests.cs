@@ -1,4 +1,5 @@
 using System.Net;
+using NailManagement.Domain.Access;
 using NailManagement.Tests.Infrastructure;
 
 namespace NailManagement.Tests.Authorization;

@@ -1,7 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
-using NailManagement.Domain.Entities.Auth;
-using NailManagement.Domain.Enums.Auth;
-using NailManagement.Domain.Repositories.Auth;
+using NailManagement.Domain.Auth;
 using NailManagement.Tests.Infrastructure;
 
 namespace NailManagement.Tests.Concurrency;

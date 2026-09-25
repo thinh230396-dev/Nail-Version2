@@ -1,6 +1,6 @@
 using NailManagement.API.Controllers;
 using NailManagement.Application.Features.Auth.UseCases;
-using NailManagement.Domain.Common;
+using NailManagement.Domain.Shared;
 using NailManagement.Infrastructure.Persistence.TenantScope;
 
 namespace NailManagement.API.Security;

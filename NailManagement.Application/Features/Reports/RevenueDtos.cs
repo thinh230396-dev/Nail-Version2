@@ -1,3 +1,5 @@
+using NailManagement.Domain.Salon.Revenue;
+
 namespace NailManagement.Application.Features.Reports;
 
 /// <summary>

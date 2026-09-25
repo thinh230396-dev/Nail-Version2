@@ -1,4 +1,5 @@
 using System.Net;
+using NailManagement.Domain.Platform.Tenants;
 using NailManagement.Tests.Infrastructure;
 
 namespace NailManagement.Tests.Accounts;

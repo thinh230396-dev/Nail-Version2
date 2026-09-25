@@ -1,6 +1,6 @@
 using NailManagement.Application.Common.Exceptions;
-using NailManagement.Domain.Common;
-using NailManagement.Domain.Enums.Auth;
+using NailManagement.Domain.Access;
+using NailManagement.Domain.Shared;
 
 namespace NailManagement.Application.Common;
 

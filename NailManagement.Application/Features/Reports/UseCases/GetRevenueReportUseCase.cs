@@ -1,11 +1,9 @@
 using NailManagement.Application.Abstractions;
 using NailManagement.Application.Common;
 using NailManagement.Application.Features.Reports;
-using NailManagement.Domain.Common;
-using NailManagement.Domain.Entities.Salon;
-using NailManagement.Domain.Enums.Salon;
-using NailManagement.Domain.Policies;
-using NailManagement.Domain.Repositories.Salon;
+using NailManagement.Domain.Salon.Invoices;
+using NailManagement.Domain.Salon.Revenue;
+using NailManagement.Domain.Shared;
 
 namespace NailManagement.Application.Features.Reports.UseCases;
 

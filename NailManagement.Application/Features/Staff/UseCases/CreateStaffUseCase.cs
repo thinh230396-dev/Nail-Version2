@@ -1,10 +1,11 @@
 using NailManagement.Application.Abstractions;
 using NailManagement.Application.Common.Exceptions;
 using NailManagement.Application.Features.Staff;
-using NailManagement.Domain.Common;
-using NailManagement.Domain.Policies;
-using NailManagement.Domain.Repositories.Salon;
-using StaffEntity = NailManagement.Domain.Entities.Salon.Staff;
+using NailManagement.Domain.Salon.Branches;
+using NailManagement.Domain.Salon.StaffMembers;
+using NailManagement.Domain.Shared;
+
+using StaffEntity = NailManagement.Domain.Salon.StaffMembers.Staff;
 
 namespace NailManagement.Application.Features.Staff.UseCases;
 

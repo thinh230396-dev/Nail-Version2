@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using NailManagement.Domain.Entities.Auth;
-using NailManagement.Domain.Entities.Salon;
+using NailManagement.Domain.Auth;
+using NailManagement.Domain.Salon.StaffMembers;
 using NailManagement.Domain.ValueObjects;
 
 namespace NailManagement.Infrastructure.Persistence.Configurations.Auth;

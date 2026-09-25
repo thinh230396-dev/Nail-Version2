@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc.Filters;
 using NailManagement.Application.Common.Exceptions;
-using NailManagement.Domain.Enums.Auth;
-using NailManagement.Domain.Policies;
+using NailManagement.Domain.Access;
 
 namespace NailManagement.API.Security;
 
