@@ -1,8 +1,9 @@
 name: CI
 
 on:
+  # Mọi nhánh, không chỉ main: một nhánh tính năng phải biết mình đỏ trước khi mở pull request,
+  # không phải sau.
   push:
-    branches: [main]
   pull_request:
 
 concurrency:
