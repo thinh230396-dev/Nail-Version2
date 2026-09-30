@@ -63,20 +63,36 @@ public sealed class SalesInvoiceRepository(NailDbContext db, ITenantContext tena
                 "Cấp số hóa đơn khi request chưa có tiệm đang làm việc. "
                 + "Endpoint gọi tới đây phải nằm sau RequirePermission.");
 
-        var counter = await db.InvoiceCounters
-            .FirstOrDefaultAsync(row => row.BusinessDate == businessDate, cancellationToken);
+        // MỘT câu lệnh vừa tăng vừa trả số, thay cho đọc–cộng–ghi trong bộ nhớ.
+        //
+        // Đọc rồi ghi là hai bước, và giao dịch READ COMMITTED không khóa gì giữa hai bước ấy:
+        // hai quầy cùng đọc số 5, cùng ghi số 6, và quầy sau đụng chỉ mục duy nhất trên số hóa
+        // đơn — HTTP 500 ngay trước mặt khách. Đầu ngày còn tệ hơn: hai quầy cùng thấy "chưa có
+        // bộ đếm" và cùng chèn, một bên đụng khóa chính.
+        //
+        // MERGE với HOLDLOCK giữ khóa phạm vi trên đúng cặp (tiệm, ngày) từ lúc kiểm tới lúc ghi,
+        // nên phép "chưa có thì tạo, có rồi thì tăng" là nguyên tử. Khóa ấy sống tới hết giao dịch
+        // lập hóa đơn, nên các quầy xếp hàng ở đây trong vài mili giây và số hóa đơn liền nhau,
+        // không nhảy cóc khi một lần lập hóa đơn bị cuộn ngược.
+        //
+        // SQL viết tay vì EF không có phép upsert nguyên tử. Tham số hóa qua FormattableString —
+        // không có chuỗi nào của người dùng được ghép vào câu lệnh.
+        var numbers = await db.Database
+            .SqlQuery<int>($"""
+                MERGE [InvoiceCounters] WITH (HOLDLOCK) AS [target]
+                USING (SELECT {tenantId} AS [TenantId], {businessDate} AS [BusinessDate]) AS [source]
+                    ON [target].[TenantId] = [source].[TenantId]
+                   AND [target].[BusinessDate] = [source].[BusinessDate]
+                WHEN MATCHED THEN
+                    UPDATE SET [LastNumber] = [target].[LastNumber] + 1
+                WHEN NOT MATCHED THEN
+                    INSERT ([TenantId], [BusinessDate], [LastNumber])
+                    VALUES ([source].[TenantId], [source].[BusinessDate], 1)
+                OUTPUT inserted.[LastNumber] AS [Value];
+                """)
+            .ToListAsync(cancellationToken);
 
-        if (counter is null)
-        {
-            counter = InvoiceCounter.StartOfDay(tenantId, businessDate);
-            await db.InvoiceCounters.AddAsync(counter, cancellationToken);
-        }
-
-        var number = counter.NextNumber();
-
-        await db.SaveChangesAsync(cancellationToken);
-
-        return InvoiceCounter.FormatCode(businessDate, number);
+        return InvoiceCounter.FormatCode(businessDate, numbers.Single());
     }
 
     public async Task AddAsync(SalesInvoice invoice, CancellationToken cancellationToken = default)

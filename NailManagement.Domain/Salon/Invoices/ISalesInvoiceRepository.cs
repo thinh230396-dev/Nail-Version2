@@ -60,8 +60,9 @@ public interface ISalesInvoiceRepository
     /// không mua lại được gì.
     /// </para>
     /// <para>
-    /// ⚠️ Người gọi <b>phải</b> bọc lời gọi này và lệnh tạo hóa đơn trong cùng một giao dịch.
-    /// Ngoài giao dịch thì hai quầy bấm thanh toán cùng lúc vẫn có thể nhận cùng một số.
+    /// Nguyên tử: hai quầy gọi cùng lúc luôn nhận hai số khác nhau (có phép thử đồng thời). Người
+    /// gọi vẫn nên bọc lời gọi này cùng lệnh tạo hóa đơn trong một giao dịch — khi đó một lần lập
+    /// hóa đơn bị cuộn ngược trả lại số của nó, và dãy số trong ngày không có lỗ hổng.
     /// </para>
     /// </summary>
     Task<string> NextCodeAsync(DateOnly businessDate, CancellationToken cancellationToken = default);
