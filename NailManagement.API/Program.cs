@@ -13,6 +13,19 @@ using NailManagement.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ── Log ───────────────────────────────────────────────────────────────────────
+// Ngoài Development: mỗi dòng log là một đối tượng JSON, kèm phạm vi của request (TraceId,
+// RequestPath). Công cụ gom log đọc được từng trường thay vì phải đoán từ một câu văn, và
+// traceId trong thân lỗi (ErrorBody) dẫn thẳng tới đúng dòng log của request ấy.
+if (!builder.Environment.IsDevelopment())
+{
+    builder.Logging.AddJsonConsole(options =>
+    {
+        options.IncludeScopes = true;
+        options.UseUtcTimestamp = true;
+    });
+}
+
 // ── Tầng trong ────────────────────────────────────────────────────────────────
 // API chỉ gọi hai hàm mở rộng này; nó không biết use case cần những gì, cũng không
 // biết repository được cài đặt bằng gì. Đó là điểm ráp nối duy nhất của hệ thống.
@@ -34,6 +47,9 @@ builder.Services.AddOpenApi();
 
 // Kết quả xác thực của request, do SessionMiddleware ghi vào và mọi tầng sau chỉ đọc.
 builder.Services.AddScoped<RequestScope>();
+
+// IP thật của người dùng khi đứng sau reverse proxy — xem ReverseProxySetup.
+builder.Services.AddReverseProxySupport(builder.Configuration);
 
 // ── Giới hạn tần suất đăng nhập theo địa chỉ IP ───────────────────────────────
 // Đếm theo NGUỒN GỌI, bổ sung cho phép khóa tạm vốn đếm theo TÀI KHOẢN. Hai bộ đếm bắt hai
@@ -95,17 +111,23 @@ builder.Services.AddRateLimiter(options =>
         }
 
         await context.HttpContext.Response.WriteAsJsonAsync(
-            new ErrorResponse(new ErrorBody(
+            ErrorResponse.Of(
+                context.HttpContext,
                 ErrorCode.TooManyRequests,
-                "Bạn đã thử đăng nhập quá nhiều lần. Vui lòng chờ vài phút rồi thử lại.",
-                [])),
+                "Bạn đã thử đăng nhập quá nhiều lần. Vui lòng chờ vài phút rồi thử lại."),
             cancellationToken);
     };
 });
 
 var app = builder.Build();
 
-// Bộ xử lý lỗi phải đứng đầu chuỗi middleware để bắt được lỗi của mọi tầng phía sau.
+// Đọc IP và giao thức thật TRƯỚC mọi thứ: bộ giới hạn đăng nhập, nhật ký kiểm toán và phép
+// chuyển hướng HTTPS phía sau đều dựa vào chúng.
+app.UseForwardedHeaders();
+
+app.UseMiddleware<SecurityHeadersMiddleware>();
+
+// Bộ xử lý lỗi đứng ngay sau để bắt được lỗi của mọi tầng phía sau.
 app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
@@ -118,6 +140,9 @@ if (app.Environment.IsDevelopment())
 // Secure=false bị bỏ qua.
 if (!app.Environment.IsDevelopment())
 {
+    // HSTS: trình duyệt nhớ chỉ nói chuyện với máy chủ này qua HTTPS, nên một lần gõ http://
+    // không còn là khe hở để cookie phiên đi trên đường truyền không mã hóa.
+    app.UseHsts();
     app.UseHttpsRedirection();
 }
 
@@ -178,10 +203,10 @@ app.MapHealthChecks("/api/health/ready", new HealthCheckOptions
 // và tầng service ở frontend không đọc được mã lỗi.
 app.MapFallback("/api/{**path}", (HttpContext context) =>
 {
-    var body = new ErrorResponse(new ErrorBody(
+    var body = ErrorResponse.Of(
+        context,
         ErrorCode.NotFound,
-        $"Không có endpoint {context.Request.Method} {context.Request.Path}.",
-        []));
+        $"Không có endpoint {context.Request.Method} {context.Request.Path}.");
 
     return Results.Json(body, statusCode: StatusCodes.Status404NotFound);
 });

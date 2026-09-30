@@ -51,10 +51,11 @@ public sealed class ApiExceptionHandler(ILogger<ApiExceptionHandler> logger) : I
                 ? mapped
                 : StatusCodes.Status500InternalServerError;
 
-            payload = new ErrorResponse(new ErrorBody(
+            payload = ErrorResponse.Of(
+                httpContext,
                 appException.Code,
                 appException.Message,
-                [.. appException.Fields.Select(f => new FieldErrorDto(f.Field, f.Message))]));
+                [.. appException.Fields.Select(f => new FieldErrorDto(f.Field, f.Message))]);
         }
         else
         {
@@ -68,10 +69,8 @@ public sealed class ApiExceptionHandler(ILogger<ApiExceptionHandler> logger) : I
                 httpContext.Request.Path);
 
             status = StatusCodes.Status500InternalServerError;
-            payload = new ErrorResponse(new ErrorBody(
-                ErrorCode.Internal,
-                "Máy chủ gặp sự cố. Vui lòng thử lại.",
-                []));
+            payload = ErrorResponse.Of(
+                httpContext, ErrorCode.Internal, "Máy chủ gặp sự cố. Vui lòng thử lại.");
         }
 
         httpContext.Response.StatusCode = status;

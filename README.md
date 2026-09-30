@@ -167,7 +167,7 @@ hoặc CONFIRMED và **không kèm hóa đơn nào**, nên báo cáo doanh thu k
 ## 4. Kiểm thử
 
 ```bash
-dotnet test        # 136 phép thử, ~20 giây
+dotnet test        # 142 phép thử, ~20 giây
 ```
 
 Bộ xUnit dựng máy chủ **trong bộ nhớ** qua `WebApplicationFactory` và chạy trên một database
@@ -270,10 +270,28 @@ cho ai cả**.
 | `DemoSeed:Enabled` | `appsettings.Development.json` | `true` — bị bỏ qua ngoài Development |
 | `Bootstrap:AdminEmail`, `Bootstrap:AdminPassword` | biến môi trường | trống — tài khoản quản trị đầu tiên ngoài Development |
 | `Auth:LoginRateLimit` | `appsettings.json` | 30 lần / 300 giây mỗi IP |
+| `ReverseProxy:KnownProxies`, `ReverseProxy:KnownNetworks` | biến môi trường khi triển khai | trống — chỉ tin proxy trên loopback |
 | Cổng HTTP | `Properties/launchSettings.json`, hồ sơ `http` | `5282` |
 
 Chuỗi kết nối của bộ kiểm thử **không đọc `appsettings`** — nó phải sẵn sàng trước cả khi host được
 dựng, lý do đầy đủ ở chú thích trong `SalonSysFactory`. Đổi máy chủ thì đặt `NAILMANAGEMENT_TEST_DB`.
+
+### Chạy sau reverse proxy
+
+Đứng sau nginx, IIS hay một bộ cân bằng tải thì máy chủ chỉ thấy IP **của proxy**. Khai IP proxy để nó
+đọc IP thật từ `X-Forwarded-For` — không khai thì giới hạn đăng nhập theo IP gom mọi người dùng vào một
+ngăn, và nhật ký, danh sách phiên ghi toàn một địa chỉ:
+
+```bash
+ReverseProxy__KnownProxies__0=10.0.0.5        # hoặc cả dải: ReverseProxy__KnownNetworks__0=10.0.0.0/24
+```
+
+`X-Forwarded-For` từ bất kỳ nguồn nào khác đều bị bỏ qua, để không ai tự xưng một IP mới cho mỗi lần
+dò mật khẩu. Ngoài Development máy chủ còn bật HSTS, và mọi phản hồi mang `X-Content-Type-Options`,
+`X-Frame-Options`, `Referrer-Policy`.
+
+Mỗi thân lỗi mang `traceId` — cùng giá trị với trường `TraceId` trong log JSON của máy chủ (log ở dạng
+JSON ngoài Development). Người dùng chép mã ấy khi báo lỗi là tra được đúng request.
 
 ### Kiểm tra sức khỏe
 
