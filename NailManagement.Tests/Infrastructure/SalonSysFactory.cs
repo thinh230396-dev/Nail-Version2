@@ -130,7 +130,11 @@ public class SalonSysFactory : WebApplicationFactory<Program>
                 // đều do bộ nạp demo dựng. Từ ngày 24 bộ nạp ấy đòi một cờ bật tường minh
                 // (DemoSeedPolicy), nên harness phải tự khai ra thứ mình cần thay vì trông vào
                 // appsettings.Development.json tình cờ được nạp kèm.
-                [DemoSeedPolicy.EnabledKey] = "true"
+                [DemoSeedPolicy.EnabledKey] = "true",
+
+                // Harness xóa database trước mỗi lần chạy nên luôn cần máy chủ tự dựng lại lược
+                // đồ — kể cả ở các factory chạy ngoài Development, nơi mặc định là không tự migrate.
+                [DatabaseBootstrap.MigrateOnStartupKey] = "true"
             }));
     }
 

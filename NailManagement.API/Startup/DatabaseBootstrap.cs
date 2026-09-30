@@ -26,12 +26,24 @@ public static class DatabaseBootstrap
     /// <inheritdoc cref="AdminEmailKey"/>
     public const string AdminDisplayNameKey = "Bootstrap:AdminDisplayName";
 
+    /// <summary>
+    /// Có tự áp migration lúc khởi động không. Mặc định: <b>có</b> ở Development, <b>không</b> ở
+    /// mọi nơi khác.
+    /// <para>
+    /// Máy phát triển cần "chạy là lên". Máy chủ thật thì không nên để tiến trình web tự sửa
+    /// lược đồ: nhiều bản chạy song song sẽ cùng tranh nhau migrate, và tài khoản database của
+    /// ứng dụng lẽ ra không cần quyền DDL. Ở đó migration là một bước riêng của quy trình triển
+    /// khai — <c>dotnet ef migrations bundle</c> — chạy đúng một lần trước khi mở bản mới.
+    /// </para>
+    /// </summary>
+    public const string MigrateOnStartupKey = "Database:MigrateOnStartup";
+
     public static async Task BootstrapDatabaseAsync(this WebApplication app)
     {
         using var scope = app.Services.CreateScope();
 
         var db = scope.ServiceProvider.GetRequiredService<NailDbContext>();
-        await db.Database.MigrateAsync();
+        await EnsureSchemaAsync(app, db);
 
         if (DemoSeedPolicy.ShouldSeedDemoData(app.Environment, app.Configuration))
         {
@@ -46,6 +58,30 @@ public static class DatabaseBootstrap
     /// Ba tài khoản demo và toàn bộ dữ liệu nghiệp vụ mẫu, để lần chạy đầu trên máy sạch không
     /// cần thao tác tay.
     /// </summary>
+    private static async Task EnsureSchemaAsync(WebApplication app, NailDbContext db)
+    {
+        var migrate = app.Configuration.GetValue<bool?>(MigrateOnStartupKey)
+            ?? app.Environment.IsDevelopment();
+
+        if (migrate)
+        {
+            await db.Database.MigrateAsync();
+            return;
+        }
+
+        // Không tự migrate thì phải kiểm: chạy mã mới trên lược đồ cũ là hỏng ở request đầu tiên
+        // chạm tới cột mới, cách xa nguyên nhân thật. Dừng ngay lúc khởi động và nói rõ vì sao.
+        var pending = (await db.Database.GetPendingMigrationsAsync()).ToArray();
+
+        if (pending.Length > 0)
+        {
+            throw new InvalidOperationException(
+                $"Database còn {pending.Length} migration chưa áp ({string.Join(", ", pending)}). "
+                + "Chạy migration bundle trước khi mở bản này, hoặc đặt "
+                + $"{MigrateOnStartupKey}=true nếu đây là môi trường được phép tự sửa lược đồ.");
+        }
+    }
+
     private static async Task SeedDemoAsync(WebApplication app, IServiceProvider services)
     {
         var accountSeeder = services.GetRequiredService<DemoAccountSeeder>();

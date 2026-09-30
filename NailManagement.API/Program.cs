@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using NailManagement.API.Common;
 using NailManagement.API.Security;
 using NailManagement.API.Startup;
@@ -159,7 +160,18 @@ app.UseMiddleware<TenantWriteGuardMiddleware>();
 
 app.MapControllers();
 
+// Hai mức kiểm tra sức khỏe, theo quy ước của bộ cân bằng tải và Kubernetes:
+//   · /api/health        — SỐNG: tiến trình còn trả lời. Không chạm database, để database tạm
+//                          mất không khiến nền tảng khởi động lại một tiến trình vẫn khỏe.
+//   · /api/health/ready  — SẴN SÀNG: nối được database. Trả 503 khi không, để bộ cân bằng tải
+//                          tạm rút bản này khỏi vòng quay thay vì đẩy request vào chỗ sẽ hỏng.
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok", time = DateTimeOffset.UtcNow }));
+
+app.MapHealthChecks("/api/health/ready", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains(HealthCheckTags.Ready),
+    ResponseWriter = HealthCheckResponse.WriteAsync
+});
 
 // Đường dẫn không khớp route nào. Cần khai báo riêng vì route không khớp KHÔNG đi qua
 // ApiExceptionHandler — nếu bỏ qua thì client nhận 404 với thân rỗng, lệch contract lỗi

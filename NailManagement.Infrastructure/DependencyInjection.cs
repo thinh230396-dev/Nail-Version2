@@ -59,7 +59,7 @@ public static class DependencyInjection
 
             // Ba bảng nền tảng — hóa đơn đăng ký, yêu cầu nâng gói, liên kết tài khoản với
             // tiệm — trỏ tới một tiệm có thể đã bị xóa mềm. EF Core cảnh báo rằng khi đó
-            // thuộc tính điều hướng sẽ rỗng dù khóa ngoại vẫn có giá trị. Ở đây điều đó
+            // phép nối theo quan hệ ấy sẽ không thấy tiệm dù khóa ngoại vẫn có giá trị. Ở đây điều đó
             // ĐÚNG như thiết kế: BR-TENANT-022 giữ lại hóa đơn của tiệm đã xóa, và chính
             // vì vậy các bảng đó chép sẵn tên tiệm thành cột riêng thay vì đọc qua điều
             // hướng. Tắt cảnh báo để nhật ký lúc chạy không bị lấp bởi ba dòng đã biết.
@@ -95,6 +95,12 @@ public static class DependencyInjection
         // request đó; một bản dùng chung sẽ mở giao dịch trên một kết nối khác với kết nối
         // mà các repository đang ghi, và khi đó nó không gom được gì cả.
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
+
+        // Kiểm tra sẵn sàng: máy chủ chỉ nhận lưu lượng khi nối được database. Gắn nhãn "ready"
+        // để phân biệt với kiểm tra sống — tiến trình còn chạy nhưng database tạm mất thì nên
+        // rút khỏi bộ cân bằng tải, không nên bị khởi động lại.
+        services.AddHealthChecks()
+            .AddDbContextCheck<NailDbContext>("database", tags: [HealthCheckTags.Ready]);
 
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
         services.AddSingleton<IPasswordGenerator, RandomPasswordGenerator>();
