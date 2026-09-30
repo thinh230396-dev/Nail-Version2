@@ -1,0 +1,17 @@
+# Git tự chuẩn hóa xuống dòng: kho lưu LF, máy Windows lấy ra CRLF. Không có dòng này thì
+# mỗi công cụ tự quyết một kiểu, và một lần tái cấu trúc bằng script là đủ để cả trăm file
+# hiện "đã sửa" chỉ vì ký tự xuống dòng.
+* text=auto
+
+*.cs      text diff=csharp
+*.csproj  text
+*.slnx    text
+*.props   text
+*.json    text
+*.md      text
+*.yml     text
+*.sh      text eol=lf
+
+*.png     binary
+*.jpg     binary
+*.ico     binary

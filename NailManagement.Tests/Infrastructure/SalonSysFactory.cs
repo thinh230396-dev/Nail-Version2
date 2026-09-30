@@ -67,10 +67,17 @@ public class SalonSysFactory : WebApplicationFactory<Program>
     /// dựng. <c>WebApplication.CreateBuilder</c> luôn nạp sẵn nguồn biến môi trường, và nguồn đó
     /// xếp trên <c>appsettings.json</c>, nên giá trị đã sẵn sàng đúng lúc dòng đọc kia chạy.
     /// </para>
+    /// <para>
+    /// Máy khác đặt biến <c>NAILMANAGEMENT_TEST_DB</c> để thay cả chuỗi — CI chạy SQL Server
+    /// trong container Linux, nơi không có đăng nhập Windows. Tên database trong chuỗi thay thế
+    /// cũng phải khác database thật, vì cùng lý do ở trên.
+    /// </para>
     /// </summary>
-    private const string ConnectionString =
-        "Server=localhost;Database=NailManagementTests;"
-        + "Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True";
+    private static readonly string ConnectionString =
+        Environment.GetEnvironmentVariable("NAILMANAGEMENT_TEST_DB") is { Length: > 0 } fromEnvironment
+            ? fromEnvironment
+            : "Server=localhost;Database=NailManagementTests;"
+              + "Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True";
 
     public SalonSysFactory() : this(dropDatabase: true)
     {
