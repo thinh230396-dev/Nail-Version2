@@ -204,17 +204,14 @@ PublishScripts/
 *.nupkg
 # NuGet Symbol Packages
 *.snupkg
-# The packages folder can be ignored because of Package Restore
-**/[Pp]ackages/*
-# except build/, which is used as an MSBuild target.
-!**/[Pp]ackages/build/
-
-# … và trừ lát cắt use case tên Packages của tầng Application. Quy tắc
-# **/[Pp]ackages/* ở trên sinh ra cho thư mục gói NuGet, nhưng nó khớp luôn
-# NailManagement.Application/UseCases/Packages/ — nơi chứa mã nguồn thật.
-# Không có dòng dưới đây thì ListPackagesUseCase.cs không nằm trong repo, và
-# một lần git clone sạch sẽ không build được.
-!NailManagement.Application/UseCases/Packages/*
+# Thư mục gói NuGet kiểu cũ (packages.config) — CHỈ ở gốc repo.
+#
+# Mẫu gốc của Visual Studio là **/[Pp]ackages/*, và nó khớp mọi thư mục tên Packages ở mọi
+# tầng: Application/Features/Packages, Infrastructure/Persistence/Platform/Packages — mã nguồn
+# thật của nghiệp vụ gói dịch vụ. Hai lần nó đã lặng lẽ nuốt mã khỏi repo và làm một lần clone
+# sạch không build được. Dự án dùng PackageReference nên thư mục này không bao giờ xuất hiện;
+# giữ lại dòng ở gốc chỉ để phòng khi ai đó mở bằng công cụ cũ.
+/[Pp]ackages/
 # Uncomment if necessary however generally it will be regenerated when needed
 #!**/[Pp]ackages/repositories.config
 # NuGet v3's project.json files produces more ignorable files
