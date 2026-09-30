@@ -68,3 +68,17 @@ jobs:
         with:
           name: test-results
           path: "**/TestResults/**"
+
+  # Máy phát triển không có Docker, nên đây là nơi duy nhất Dockerfile được kiểm. Chỉ build,
+  # không đẩy ảnh đi đâu.
+  docker-image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build ảnh máy chủ
+        run: docker build --target runtime --tag salonsys-api:ci .
+
+      - name: Build ảnh migration
+        run: docker build --target migrator --tag salonsys-migrate:ci .

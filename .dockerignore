@@ -1,0 +1,18 @@
+# Chỉ mã nguồn và tệp dự án đi vào ngữ cảnh build — không kèm kết quả build cũ trên máy,
+# không kèm lịch sử git, không kèm bộ kiểm thử.
+**/bin/
+**/obj/
+**/*.user
+.git/
+.github/
+.vs/
+.claude/
+NailManagement.Tests/
+
+# Giao diện dựng sẵn là bản sao đông cứng từ repo khác (npm run build:server). Để nó lọt vào ảnh
+# thì ảnh phụ thuộc vào máy nào build — ảnh phải giống nhau dù build ở đâu.
+**/wwwroot/
+
+*.md
+Dockerfile
+.dockerignore

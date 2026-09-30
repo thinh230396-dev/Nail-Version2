@@ -316,6 +316,27 @@ dotnet ef migrations bundle --project NailManagement.Infrastructure --startup-pr
 Mở máy chủ khi database còn migration chưa áp thì nó **dừng ngay lúc khởi động** và liệt kê tên
 migration còn thiếu, thay vì hỏng ở request đầu tiên chạm vào cột mới.
 
+Bundle không cần `appsettings.json` bên cạnh: công cụ EF dựng DbContext qua
+`DesignTimeNailDbContextFactory`, không chạy máy chủ web. Cũng vì vậy các lệnh `dotnet ef` trên máy
+phát triển nhắm vào `Server=localhost;Database=NailManagement`, trừ khi đặt `ConnectionStrings__Default`.
+
+### Docker
+
+```bash
+docker build --target migrator -t salonsys-migrate .
+docker build --target runtime  -t salonsys-api .
+
+docker run --rm salonsys-migrate --connection "<chuỗi kết nối>"          # một lần, trước khi mở bản mới
+docker run -p 8080:8080 \
+  -e ConnectionStrings__Default="<chuỗi kết nối>" \
+  -e Bootstrap__AdminEmail=... -e Bootstrap__AdminPassword=... \
+  salonsys-api
+```
+
+Ảnh `runtime` chạy môi trường `Production` dưới người dùng không phải root, cổng 8080, và **không**
+kèm giao diện: `wwwroot/` bị loại khỏi ngữ cảnh build để ảnh giống nhau dù build trên máy nào. Máy
+phát triển chưa có Docker nên Dockerfile được kiểm ở CI (job `docker-image`), chưa chạy thử tại chỗ.
+
 ### Collation — đọc trước khi đổi máy chủ
 
 Máy chủ hiện dùng **`Vietnamese_CI_AS`** (trình cài đặt SQL Server chọn theo ngôn ngữ Windows).
