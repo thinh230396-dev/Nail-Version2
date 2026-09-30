@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using NailManagement.Domain.Salon.Services;
 using NailManagement.Domain.Salon.Appointments;
 
 namespace NailManagement.Infrastructure.Persistence.Salon.Appointments;
@@ -19,7 +20,7 @@ public sealed class AppointmentServiceConfiguration : IEntityTypeConfiguration<A
         builder.Property(line => line.DurationMinutes).IsRequired();
         builder.Property(line => line.BufferMinutes).IsRequired();
 
-        builder.HasOne(line => line.Service)
+        builder.HasOne<Service>()
             .WithMany()
             .HasForeignKey(line => line.ServiceId)
             .OnDelete(DeleteBehavior.NoAction);

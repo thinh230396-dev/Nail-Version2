@@ -168,7 +168,11 @@ public sealed class AppointmentBookingGuard(
         var blocking = await appointments.FindBlockingAsync(
             staff.Id, start, end, exceptAppointmentId, cancellationToken);
 
-        if (blocking is not null) throw new SlotConflictException(DescribeConflict(staff, blocking));
+        if (blocking is not null)
+        {
+            var holder = await customers.FindByIdAsync(blocking.CustomerId, cancellationToken);
+            throw new SlotConflictException(DescribeConflict(staff, blocking, holder));
+        }
 
         var warnings = new List<AppointmentWarning>(2);
 
@@ -202,10 +206,10 @@ public sealed class AppointmentBookingGuard(
     /// ngày nào, và cho khách nào</b>: contract lỗi chỉ có ba trường và không mang được một
     /// đối tượng đính kèm, nên toàn bộ thứ lễ tân cần để xếp lại lịch phải nằm trong câu này.
     /// </summary>
-    private static string DescribeConflict(StaffEntity staff, Appointment blocking)
+    private static string DescribeConflict(StaffEntity staff, Appointment blocking, Customer? holder)
     {
-        var customerName = blocking.Customer?.FullName
-            ?? blocking.Customer?.Phone.Value
+        var customerName = holder?.FullName
+            ?? holder?.Phone.Value
             ?? "khách khác";
 
         return $"{staff.FullName} đã có lịch "

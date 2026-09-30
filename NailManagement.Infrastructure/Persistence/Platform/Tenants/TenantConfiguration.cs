@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using NailManagement.Domain.Platform.Packages;
 using NailManagement.Domain.Platform.Tenants;
 
 namespace NailManagement.Infrastructure.Persistence.Platform.Tenants;
@@ -35,7 +36,7 @@ public sealed class TenantConfiguration : IEntityTypeConfiguration<Tenant>
 
         // BR-SUB-003 — gói không xóa được khi còn tiệm dùng, nên quan hệ này cố ý KHÔNG
         // xóa lan: cơ sở dữ liệu từ chối luôn thay vì âm thầm kéo theo dữ liệu tiệm.
-        builder.HasOne(tenant => tenant.Package)
+        builder.HasOne<Package>()
             .WithMany()
             .HasForeignKey(tenant => tenant.PackageId)
             .OnDelete(DeleteBehavior.NoAction);

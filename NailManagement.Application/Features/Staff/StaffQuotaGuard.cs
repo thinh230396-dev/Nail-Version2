@@ -1,5 +1,5 @@
 using NailManagement.Application.Common.Exceptions;
-using NailManagement.Domain.Platform.Tenants;
+using NailManagement.Application.Common;
 using NailManagement.Domain.Salon.StaffMembers;
 
 namespace NailManagement.Application.Features.Staff;
@@ -20,7 +20,7 @@ namespace NailManagement.Application.Features.Staff;
 /// </summary>
 public sealed class StaffQuotaGuard(
     IStaffRepository staffMembers,
-    ITenantRepository tenants)
+    TenantPlanReader plans)
 {
     /// <param name="isReactivating">
     /// Chỉ đổi câu chữ của thông báo, không đổi phép kiểm. Người đang thêm nhân viên mới
@@ -30,19 +30,14 @@ public sealed class StaffQuotaGuard(
     public async Task EnsureRoomForOneMoreAsync(
         string tenantId, bool isReactivating, CancellationToken cancellationToken = default)
     {
-        var tenant = await tenants.FindByIdAsync(tenantId, cancellationToken)
-            ?? throw new NotFoundException("Không tìm thấy tiệm đang làm việc.");
-
-        if (tenant.Package is null)
-            throw new InvalidOperationException(
-                $"Tiệm {tenant.Id} không đọc được gói đăng ký. Kho dữ liệu phải trả về tiệm kèm gói.");
+        var plan = await plans.GetAsync(tenantId, cancellationToken);
 
         var activeCount = await staffMembers.CountActiveAsync(cancellationToken);
 
-        if (activeCount < tenant.Package.MaxStaff) return;
+        if (activeCount < plan.Package.MaxStaff) return;
 
         throw new LimitExceededException(
-            $"Gói {tenant.Package.Name} chỉ cho phép {tenant.Package.MaxStaff} nhân viên đang làm việc. "
+            $"Gói {plan.Package.Name} chỉ cho phép {plan.Package.MaxStaff} nhân viên đang làm việc. "
             + (isReactivating
                 ? "Cho một nhân viên khác nghỉ việc hoặc nâng gói trước khi nhận lại người này."
                 : "Nâng gói để thêm nhân viên mới."));

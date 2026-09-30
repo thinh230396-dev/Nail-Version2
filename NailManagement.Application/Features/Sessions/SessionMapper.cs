@@ -5,19 +5,24 @@ namespace NailManagement.Application.Features.Sessions;
 
 public static class SessionMapper
 {
-    public static SessionDto ToDto(AppSession session, DateTimeOffset now, string currentSessionId)
+    /// <param name="owner">
+    /// Chủ phiên, do nơi gọi đọc riêng — phiên chỉ giữ <c>UserId</c>. Vắng mặt thì DTO rơi về mã
+    /// tài khoản thay cho tên, thay vì hỏng cả danh sách vì một tài khoản đã bị xóa.
+    /// </param>
+    public static SessionDto ToDto(
+        AppSession session, AppUser? owner, DateTimeOffset now, string currentSessionId)
     {
         var (browser, os) = ParseUserAgent(session.UserAgent);
 
         return new(
             session.Id,
             session.UserId,
-            session.User?.DisplayName ?? session.UserId,
-            session.User?.Email.Value ?? string.Empty,
+            owner?.DisplayName ?? session.UserId,
+            owner?.Email.Value ?? string.Empty,
             // Phải đi qua AccountMapper chứ không được ToString().ToUpperInvariant(): phép
             // ấy biến TenantAdmin thành "TENANTADMIN", trong khi frontend đọc "TENANT_ADMIN".
             // Hai vai kia trùng nhau một cách tình cờ nên lỗi này chỉ lộ ra ở đúng một vai.
-            session.User is null ? string.Empty : AccountMapper.ToWireFormat(session.User.Role),
+            owner is null ? string.Empty : AccountMapper.ToWireFormat(owner.Role),
             session.ActiveTenantId,
             session.Ip,
             session.UserAgent,

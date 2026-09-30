@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using NailManagement.Domain.Platform.Tenants;
 using NailManagement.Domain.Salon.Services;
 
 namespace NailManagement.Infrastructure.Persistence.Salon.Services;
@@ -23,7 +24,7 @@ public sealed class ServiceConfiguration : IEntityTypeConfiguration<Service>
         builder.Property(service => service.CreatedAt).IsRequired();
         builder.Property(service => service.UpdatedAt).IsRequired();
 
-        builder.HasOne(service => service.Tenant)
+        builder.HasOne<Tenant>()
             .WithMany()
             .HasForeignKey(service => service.TenantId)
             .OnDelete(DeleteBehavior.NoAction);

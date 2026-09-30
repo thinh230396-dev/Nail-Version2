@@ -75,6 +75,14 @@ public interface ICustomerRepository
     Task<Customer?> FindByIdAsync(string id, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Nhiều hồ sơ khách theo mã, trong tiệm đang làm việc, bằng MỘT truy vấn — cho các màn danh sách
+    /// cần hiện tên thay vì mã. Mã không tìm thấy thì vắng mặt trong kết quả; bản đọc không
+    /// được theo dõi thay đổi.
+    /// </summary>
+    Task<IReadOnlyDictionary<string, Customer>> ListByIdsAsync(
+        IReadOnlyCollection<string> ids, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// BR-CUS-002 — số điện thoại duy nhất <b>trong phạm vi một tiệm</b>. Kiểm ở đây trước
     /// khi ghi để người dùng nhận thông báo gắn đúng ô nhập, thay vì một lỗi ràng buộc thô
     /// từ chỉ số duy nhất của database.

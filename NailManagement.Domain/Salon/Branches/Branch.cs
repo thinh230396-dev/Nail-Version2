@@ -45,7 +45,6 @@ public class Branch : ITenantOwned
 
     public string Id { get; private set; }
     public string TenantId { get; private set; }
-    public Tenant? Tenant { get; private set; }
 
     /// <summary>BR-VAL-001 — tên chi nhánh duy nhất trong một tiệm, 3–80 ký tự.</summary>
     public string Name { get; private set; }

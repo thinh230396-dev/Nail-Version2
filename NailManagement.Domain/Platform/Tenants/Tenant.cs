@@ -81,7 +81,6 @@ public partial class Tenant
     public DateTimeOffset ExpiresAt { get; private set; }
 
     public string PackageId { get; private set; }
-    public Package? Package { get; private set; }
 
     /// <summary>
     /// BR-SUB-004 — giá và số phiên bản gói được chốt tại thời điểm đăng ký. Về sau

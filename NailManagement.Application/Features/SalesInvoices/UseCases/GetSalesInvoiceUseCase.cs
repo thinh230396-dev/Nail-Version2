@@ -12,7 +12,9 @@ namespace NailManagement.Application.Features.SalesInvoices.UseCases;
 /// thu tiền.
 /// </para>
 /// </summary>
-public sealed class GetSalesInvoiceUseCase(ISalesInvoiceRepository invoices)
+public sealed class GetSalesInvoiceUseCase(
+    ISalesInvoiceRepository invoices,
+    SalesInvoiceReadService reader)
 {
     public async Task<SalesInvoiceDto> ExecuteAsync(
         string id, ActorContext actor, CancellationToken cancellationToken = default)
@@ -22,6 +24,6 @@ public sealed class GetSalesInvoiceUseCase(ISalesInvoiceRepository invoices)
             actor,
             "Không tìm thấy hóa đơn.");
 
-        return SalesInvoiceMapper.ToDto(invoice);
+        return await reader.DescribeAsync(invoice, cancellationToken);
     }
 }

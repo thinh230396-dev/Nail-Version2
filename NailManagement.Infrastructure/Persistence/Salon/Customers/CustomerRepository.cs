@@ -35,6 +35,15 @@ public sealed class CustomerRepository(NailDbContext db) : ICustomerRepository
             .ThenBy(customer => customer.Phone)
             .ToListAsync(cancellationToken);
 
+    public async Task<IReadOnlyDictionary<string, Customer>> ListByIdsAsync(
+        IReadOnlyCollection<string> ids, CancellationToken cancellationToken = default)
+        => ids.Count == 0
+            ? new Dictionary<string, Customer>()
+            : await db.Customers
+                .AsNoTracking()
+                .Where(customer => ids.Contains(customer.Id))
+                .ToDictionaryAsync(customer => customer.Id, StringComparer.Ordinal, cancellationToken);
+
     public async Task<Customer?> FindByIdAsync(string id, CancellationToken cancellationToken = default)
         => await db.Customers.FirstOrDefaultAsync(customer => customer.Id == id, cancellationToken);
 
@@ -91,8 +100,16 @@ public sealed class CustomerRepository(NailDbContext db) : ICustomerRepository
                 invoice.Id,
                 invoice.Code,
                 invoice.CreatedAt,
-                BranchName = invoice.Branch != null ? invoice.Branch.Name : invoice.BranchId,
-                StaffName = invoice.Staff != null ? invoice.Staff.FullName : null,
+                // Hai truy vấn con thay cho thuộc tính điều hướng: hóa đơn chỉ giữ mã chi nhánh và
+                // mã kỹ thuật viên. SQL Server gộp chúng vào cùng một câu SELECT.
+                BranchName = db.Branches
+                    .Where(branch => branch.Id == invoice.BranchId)
+                    .Select(branch => branch.Name)
+                    .FirstOrDefault() ?? invoice.BranchId,
+                StaffName = db.Staff
+                    .Where(staff => staff.Id == invoice.StaffId)
+                    .Select(staff => staff.FullName)
+                    .FirstOrDefault(),
                 invoice.Total,
                 ServiceNames = invoice.Lines.Select(line => line.Name).ToList()
             })

@@ -1,4 +1,5 @@
 using NailManagement.Application.Abstractions;
+using NailManagement.Application.Common;
 using NailManagement.Application.Common.Exceptions;
 using NailManagement.Application.Features.Auth;
 using NailManagement.Application.Features.Tenants;
@@ -24,6 +25,7 @@ public sealed class SelectActiveTenantUseCase(
     ISessionRepository sessions,
     IUserTenantRepository userTenants,
     ITenantRepository tenants,
+    TenantPlanReader plans,
     IClock clock)
 {
     public async Task<TenantScopeDto> ExecuteAsync(
@@ -50,15 +52,13 @@ public sealed class SelectActiveTenantUseCase(
         if (tenant is null)
             throw new NotFoundException("Không tìm thấy tiệm.");
 
-        if (tenant.Package is null)
-            throw new InvalidOperationException(
-                $"Tiệm {tenant.Id} không đọc được gói đăng ký. Kho dữ liệu phải trả về tiệm kèm gói.");
+        var plan = await plans.AttachAsync(tenant, cancellationToken);
 
         session.SetActiveTenant(tenant.Id, now);
         await sessions.UpdateAsync(session, cancellationToken);
 
         // Tiệm quá hạn vẫn CHỌN ĐƯỢC: BR-TENANT-010 cho phép xem toàn bộ dữ liệu, chỉ chặn
         // ghi. Chặn luôn ở đây thì chủ tiệm không vào nổi trang gia hạn để tự mở khóa.
-        return TenantMapper.ToScope(tenant, tenant.Package, now);
+        return TenantMapper.ToScope(plan.Tenant, plan.Package, now);
     }
 }

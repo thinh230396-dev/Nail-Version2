@@ -14,7 +14,10 @@ namespace NailManagement.Application.Features.Sessions.UseCases;
 /// cố ý — hai cách thu hẹp khác nhau cho hai danh sách trên cùng một trang là chỗ để lọt lỗi.
 /// </para>
 /// </summary>
-public sealed class ListSessionsUseCase(ISessionRepository sessions, IClock clock)
+public sealed class ListSessionsUseCase(
+    ISessionRepository sessions,
+    IUserRepository users,
+    IClock clock)
 {
     private const int DefaultTake = 100;
     private const int MaxTake = 300;
@@ -35,8 +38,11 @@ public sealed class ListSessionsUseCase(ISessionRepository sessions, IClock cloc
 
         var limit = Math.Clamp(take ?? DefaultTake, 1, MaxTake);
         var found = await sessions.ListAsync(scope, limit, cancellationToken);
+        var owners = await users.ListByIdsAsync(
+            [.. found.Select(session => session.UserId).Distinct()], cancellationToken);
         var now = clock.UtcNow;
 
-        return [.. found.Select(session => SessionMapper.ToDto(session, now, currentSessionId))];
+        return [.. found.Select(session => SessionMapper.ToDto(
+            session, owners.GetValueOrDefault(session.UserId), now, currentSessionId))];
     }
 }

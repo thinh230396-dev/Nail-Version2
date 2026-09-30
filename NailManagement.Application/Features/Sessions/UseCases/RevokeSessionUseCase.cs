@@ -17,7 +17,11 @@ namespace NailManagement.Application.Features.Sessions.UseCases;
 /// dung của lớp này.
 /// </para>
 /// </summary>
-public sealed class RevokeSessionUseCase(ISessionRepository sessions, IAuditLogger audit, IClock clock)
+public sealed class RevokeSessionUseCase(
+    ISessionRepository sessions,
+    IUserRepository users,
+    IAuditLogger audit,
+    IClock clock)
 {
     /// <param name="actor">
     /// Người bấm nút, dựng từ phiên đăng nhập — BR-AUD-003. Thay cho tham số <c>role</c> của bản
@@ -64,6 +68,7 @@ public sealed class RevokeSessionUseCase(ISessionRepository sessions, IAuditLogg
         }
 
         var now = clock.UtcNow;
+        var owner = await users.FindByIdAsync(session.UserId, cancellationToken);
 
         // Thu hồi hai lần không phải lỗi. Màn hình đã ẩn nút với phiên đã đóng, nên lần gọi
         // thứ hai gần như chắc chắn là một cú bấm đúp hoặc một tab cũ — trả về trạng thái
@@ -92,11 +97,11 @@ public sealed class RevokeSessionUseCase(ISessionRepository sessions, IAuditLogg
                     new Dictionary<string, string>
                     {
                         ["target"] = session.UserId,
-                        ["device"] = SessionMapper.ToDto(session, now, currentSessionId).Device
+                        ["device"] = SessionMapper.ToDto(session, owner, now, currentSessionId).Device
                     }),
                 cancellationToken);
         }
 
-        return SessionMapper.ToDto(session, now, currentSessionId);
+        return SessionMapper.ToDto(session, owner, now, currentSessionId);
     }
 }

@@ -36,9 +36,9 @@ public sealed class SessionRepository(NailDbContext db) : ISessionRepository
     public async Task<IReadOnlyList<AppSession>> ListAsync(
         string? tenantId, int take, CancellationToken cancellationToken = default)
     {
-        // Include chủ phiên vì DTO cần tên, email và vai trò. Không Include thì mỗi dòng là
-        // một lượt truy vấn thêm, và danh sách hai chục phiên hóa ra hai chục lượt đi về.
-        var query = db.AppSessions.AsNoTracking().Include(session => session.User).AsQueryable();
+        // Không nạp kèm chủ phiên: phiên và tài khoản là hai aggregate. Use case đọc chủ phiên
+        // theo lô bằng một truy vấn — không phải một lượt cho mỗi dòng.
+        var query = db.AppSessions.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(tenantId))
         {

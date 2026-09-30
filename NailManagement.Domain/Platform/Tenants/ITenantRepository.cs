@@ -17,9 +17,9 @@ public sealed record TenantUsage(int ActiveBranches, int ActiveStaff);
 /// <summary>
 /// Cổng ra kho dữ liệu tiệm.
 /// <para>
-/// Các hàm đọc ở đây trả về tiệm KÈM gói đăng ký, vì mọi lần dùng đều cần cả hai: xác định
-/// tiệm còn hạn không (BR-TENANT-010) và gói có mở tính năng không (BR-SUB-007) là hai
-/// bước liền nhau trong chuỗi kiểm tra quyền ở BR-TENANT-013.
+/// Trả về tiệm <b>không kèm</b> gói đăng ký: tiệm và gói là hai aggregate, chỉ nối với nhau
+/// qua <c>PackageId</c>. Nơi nào cần cả hai — xác định tiệm còn hạn (BR-TENANT-010) rồi gói có
+/// mở tính năng không (BR-SUB-007) — đọc qua <c>TenantPlanReader</c> ở tầng Application.
 /// </para>
 /// </summary>
 public interface ITenantRepository

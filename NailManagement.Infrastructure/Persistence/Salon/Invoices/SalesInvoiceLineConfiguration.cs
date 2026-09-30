@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using NailManagement.Domain.Salon.Services;
 using NailManagement.Domain.Salon.Invoices;
 
 namespace NailManagement.Infrastructure.Persistence.Salon.Invoices;
@@ -26,7 +27,7 @@ public sealed class SalesInvoiceLineConfiguration : IEntityTypeConfiguration<Sal
         // để ba con số nói ba chuyện khác nhau.
         builder.Ignore(line => line.LineTotal);
 
-        builder.HasOne(line => line.Service)
+        builder.HasOne<Service>()
             .WithMany()
             .HasForeignKey(line => line.ServiceId)
             .OnDelete(DeleteBehavior.NoAction);

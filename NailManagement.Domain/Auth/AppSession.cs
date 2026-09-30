@@ -55,8 +55,6 @@ public class AppSession
     /// </summary>
     public string? ActiveTenantId { get; private set; }
 
-    public AppUser? User { get; private set; }
-
     public static AppSession Issue(
         string id,
         string userId,

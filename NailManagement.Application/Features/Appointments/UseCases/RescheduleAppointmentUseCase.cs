@@ -23,6 +23,8 @@ namespace NailManagement.Application.Features.Appointments.UseCases;
 public sealed class RescheduleAppointmentUseCase(
     IAppointmentRepository appointments,
     AppointmentBookingGuard guard,
+    IStaffRepository staffMembers,
+    AppointmentReadService reader,
     IClock clock)
 {
     public async Task<AppointmentSaveResult> ExecuteAsync(
@@ -43,9 +45,11 @@ public sealed class RescheduleAppointmentUseCase(
         if (!AppointmentLifecyclePolicy.CanReschedule(appointment.Status))
             throw DomainException.ForField("startAt", "Chỉ dời được lịch hẹn đang chờ hoặc đã xác nhận.");
 
-        var staff = appointment.Staff ?? throw new InvalidOperationException(
-            $"Lịch hẹn {appointment.Id} được đọc mà chưa nạp kèm Staff. "
-            + "Truy vấn ở tầng lưu trữ phải Include bảng này trước khi kiểm ca làm việc.");
+        // Khóa ngoại ghép bảo đảm kỹ thuật viên tồn tại trong cùng tiệm; không thấy nghĩa là dữ
+        // liệu hỏng, không phải lỗi người dùng.
+        var staff = await staffMembers.FindByIdAsync(appointment.StaffId, cancellationToken)
+            ?? throw new InvalidOperationException(
+                $"Lịch hẹn {appointment.Id} trỏ tới kỹ thuật viên {appointment.StaffId} nhưng không đọc được hồ sơ.");
 
         // Giữ nguyên độ dài: dời lịch không đụng tới danh sách dịch vụ, nên khoảng chiếm chỗ
         // vẫn đúng bằng khoảng cũ (BR-APT-010).
@@ -58,6 +62,7 @@ public sealed class RescheduleAppointmentUseCase(
 
         await appointments.UpdateAsync(appointment, cancellationToken);
 
-        return new AppointmentSaveResult(AppointmentMapper.ToDto(appointment, now), warnings);
+        return new AppointmentSaveResult(
+            await reader.DescribeAsync(appointment, now, cancellationToken), warnings);
     }
 }

@@ -18,7 +18,10 @@ namespace NailManagement.Application.Features.SalesInvoices.UseCases;
 /// nhánh mình. Khác nhóm khách hàng và dịch vụ, thứ mà lễ tân thấy toàn tiệm.
 /// </para>
 /// </summary>
-public sealed class ListSalesInvoicesUseCase(ISalesInvoiceRepository invoices, IClock clock)
+public sealed class ListSalesInvoicesUseCase(
+    ISalesInvoiceRepository invoices,
+    SalesInvoiceReadService reader,
+    IClock clock)
 {
     /// <summary>
     /// Trần độ dài khoảng ngày, giống bảng lịch hẹn. Không có nó thì một chuỗi truy vấn đủ rộng
@@ -52,6 +55,6 @@ public sealed class ListSalesInvoicesUseCase(ISalesInvoiceRepository invoices, I
         var branchId = BranchScope.Resolve(actor, "sổ hóa đơn");
         var found = await invoices.ListAsync(start, end, branchId, cancellationToken);
 
-        return [.. found.Select(SalesInvoiceMapper.ToDto)];
+        return await reader.DescribeManyAsync(found, cancellationToken);
     }
 }

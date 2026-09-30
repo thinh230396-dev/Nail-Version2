@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using NailManagement.Domain.Platform.Tenants;
 using NailManagement.Domain.Salon.Customers;
 using NailManagement.Domain.ValueObjects;
 using NailManagement.Infrastructure.Persistence.Auth;
@@ -40,7 +41,7 @@ public sealed class CustomerConfiguration : IEntityTypeConfiguration<Customer>
         builder.Property(customer => customer.CreatedAt).IsRequired();
         builder.Property(customer => customer.UpdatedAt).IsRequired();
 
-        builder.HasOne(customer => customer.Tenant)
+        builder.HasOne<Tenant>()
             .WithMany()
             .HasForeignKey(customer => customer.TenantId)
             .OnDelete(DeleteBehavior.NoAction);

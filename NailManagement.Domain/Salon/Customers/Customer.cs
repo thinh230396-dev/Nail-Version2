@@ -50,7 +50,6 @@ public class Customer : ITenantOwned
 
     public string Id { get; private set; }
     public string TenantId { get; private set; }
-    public Tenant? Tenant { get; private set; }
 
     /// <summary>
     /// BR-CUS-002 — duy nhất trong phạm vi MỘT tiệm. Hai tiệm khác nhau được phép có cùng

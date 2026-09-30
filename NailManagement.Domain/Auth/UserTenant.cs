@@ -36,8 +36,6 @@ public class UserTenant
     public string TenantId { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
 
-    public AppUser? User { get; private set; }
-    public Tenant? Tenant { get; private set; }
 
     public static UserTenant Link(string userId, string tenantId, DateTimeOffset now)
         => new(

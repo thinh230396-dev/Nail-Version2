@@ -30,7 +30,7 @@ public sealed class AppSessionConfiguration : IEntityTypeConfiguration<AppSessio
             .HasForeignKey(s => s.ActiveTenantId)
             .OnDelete(DeleteBehavior.NoAction);
 
-        builder.HasOne(s => s.User)
+        builder.HasOne<AppUser>()
             .WithMany()
             .HasForeignKey(s => s.UserId)
             .OnDelete(DeleteBehavior.Cascade);

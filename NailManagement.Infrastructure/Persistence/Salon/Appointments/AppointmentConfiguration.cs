@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using NailManagement.Domain.Salon.Branches;
+using NailManagement.Domain.Salon.Customers;
+using NailManagement.Domain.Salon.StaffMembers;
 using NailManagement.Domain.Platform.Tenants;
 using NailManagement.Domain.Salon.Appointments;
 
@@ -53,19 +56,19 @@ public sealed class AppointmentConfiguration : IEntityTypeConfiguration<Appointm
 
           Cần khóa phụ (Id, TenantId) ở phía được trỏ tới, khai trong ba configuration tương ứng.
         */
-        builder.HasOne(appointment => appointment.Branch)
+        builder.HasOne<Branch>()
             .WithMany()
             .HasForeignKey(appointment => new { appointment.BranchId, appointment.TenantId })
             .HasPrincipalKey(branch => new { branch.Id, branch.TenantId })
             .OnDelete(DeleteBehavior.NoAction);
 
-        builder.HasOne(appointment => appointment.Customer)
+        builder.HasOne<Customer>()
             .WithMany()
             .HasForeignKey(appointment => new { appointment.CustomerId, appointment.TenantId })
             .HasPrincipalKey(customer => new { customer.Id, customer.TenantId })
             .OnDelete(DeleteBehavior.NoAction);
 
-        builder.HasOne(appointment => appointment.Staff)
+        builder.HasOne<Staff>()
             .WithMany()
             .HasForeignKey(appointment => new { appointment.StaffId, appointment.TenantId })
             .HasPrincipalKey(staff => new { staff.Id, staff.TenantId })

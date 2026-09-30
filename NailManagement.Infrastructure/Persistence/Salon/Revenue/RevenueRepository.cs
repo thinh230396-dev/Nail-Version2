@@ -36,12 +36,9 @@ public sealed class RevenueRepository(NailDbContext db) : IRevenueRepository
         return await query
             .Include(invoice => invoice.Lines)
             .Include(invoice => invoice.Payments)
-            .Include(invoice => invoice.Staff)
-            .Include(invoice => invoice.Branch)
 
             // Hai phép nối một–nhiều lồng nhau. Gộp vào một câu thì mỗi hóa đơn bị nhân lên
-            // bằng số dòng hàng nhân số dòng thu, và hồ sơ nhân viên bị chép lại ở từng dòng
-            // của tích ấy — cùng lý do đã ghi ở kho dữ liệu hóa đơn.
+            // bằng số dòng hàng nhân số dòng thu — cùng lý do đã ghi ở kho dữ liệu hóa đơn.
             .AsSplitQuery()
             .AsNoTracking()
             .ToListAsync(cancellationToken);

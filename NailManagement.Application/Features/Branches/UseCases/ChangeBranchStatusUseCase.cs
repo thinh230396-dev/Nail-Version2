@@ -1,7 +1,6 @@
 using NailManagement.Application.Abstractions;
 using NailManagement.Application.Common.Exceptions;
 using NailManagement.Application.Features.Branches;
-using NailManagement.Domain.Platform.Tenants;
 using NailManagement.Domain.Salon.Branches;
 using NailManagement.Domain.Shared;
 
@@ -30,7 +29,7 @@ namespace NailManagement.Application.Features.Branches.UseCases;
 /// </summary>
 public sealed class ChangeBranchStatusUseCase(
     IBranchRepository branches,
-    ITenantRepository tenants,
+    BranchQuotaGuard quota,
     ITenantContext tenantContext,
     IClock clock)
 {
@@ -60,7 +59,10 @@ public sealed class ChangeBranchStatusUseCase(
             // hoạt động là thao tác không đổi gì, mà phép đếm khi đó lại tính cả chính nó —
             // tiệm đang dùng vừa đủ hạn mức sẽ bị từ chối một việc họ không hề làm.
             if (branch.Status != BranchStatus.Active)
-                await EnsureBranchQuotaAsync(cancellationToken);
+                await quota.EnsureRoomForOneMoreAsync(
+                    tenantContext.ActiveTenantId ?? throw new TenantNotSelectedException(),
+                    isReactivating: true,
+                    cancellationToken);
 
             branch.Activate(now);
         }
@@ -68,32 +70,5 @@ public sealed class ChangeBranchStatusUseCase(
         await branches.UpdateAsync(branch, cancellationToken);
 
         return BranchMapper.ToDto(branch);
-    }
-
-    /// <summary>
-    /// BR-BRANCH-005 — đếm chi nhánh đang hoạt động tại thời điểm thao tác, không lưu sẵn
-    /// một con số. Dùng đúng phép đếm mà <c>CreateBranchUseCase</c> dùng, để hai đường vào
-    /// cùng một hạn mức không thể cho ra hai kết quả khác nhau.
-    /// </summary>
-    private async Task EnsureBranchQuotaAsync(CancellationToken cancellationToken)
-    {
-        var tenantId = tenantContext.ActiveTenantId
-            ?? throw new TenantNotSelectedException();
-
-        var tenant = await tenants.FindByIdAsync(tenantId, cancellationToken)
-            ?? throw new NotFoundException("Không tìm thấy tiệm đang làm việc.");
-
-        if (tenant.Package is null)
-            throw new InvalidOperationException(
-                $"Tiệm {tenant.Id} không đọc được gói đăng ký. Kho dữ liệu phải trả về tiệm kèm gói.");
-
-        var activeCount = await branches.CountActiveAsync(cancellationToken);
-
-        if (activeCount >= tenant.Package.MaxSalons)
-        {
-            throw new LimitExceededException(
-                $"Gói {tenant.Package.Name} chỉ cho phép {tenant.Package.MaxSalons} chi nhánh đang hoạt động. "
-                + "Ngừng một chi nhánh khác hoặc nâng gói trước khi bật lại chi nhánh này.");
-        }
     }
 }

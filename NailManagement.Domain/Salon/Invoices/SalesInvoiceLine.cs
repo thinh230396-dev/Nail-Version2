@@ -54,7 +54,6 @@ public class SalesInvoiceLine : ITenantOwned
     public int Quantity { get; private set; }
 
     public SalesInvoice? Invoice { get; private set; }
-    public Service? Service { get; private set; }
 
     /// <summary>Thành tiền của dòng. Tính ra, không lưu — hai cột cùng nói một chuyện thì sớm muộn cũng lệch.</summary>
     public long LineTotal => UnitPrice * Quantity;

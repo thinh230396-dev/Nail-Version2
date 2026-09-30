@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using NailManagement.Domain.Platform.Tenants;
 using NailManagement.Domain.Salon.Branches;
 using NailManagement.Infrastructure.Persistence.Salon.Appointments;
 
@@ -27,7 +28,7 @@ public sealed class BranchConfiguration : IEntityTypeConfiguration<Branch>
         builder.Property(branch => branch.CreatedAt).IsRequired();
         builder.Property(branch => branch.UpdatedAt).IsRequired();
 
-        builder.HasOne(branch => branch.Tenant)
+        builder.HasOne<Tenant>()
             .WithMany()
             .HasForeignKey(branch => branch.TenantId)
             .OnDelete(DeleteBehavior.NoAction);

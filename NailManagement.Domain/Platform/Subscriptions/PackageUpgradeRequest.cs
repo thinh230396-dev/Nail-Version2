@@ -71,7 +71,6 @@ public class PackageUpgradeRequest
     public string Id { get; private set; }
     public string TenantId { get; private set; }
     public string TenantName { get; private set; }
-    public Tenant? Tenant { get; private set; }
 
     public string? RequestedByUserId { get; private set; }
     public string RequestedByName { get; private set; }

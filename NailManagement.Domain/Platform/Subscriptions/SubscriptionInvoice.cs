@@ -73,8 +73,6 @@ public class SubscriptionInvoice
     /// </summary>
     public string TenantName { get; private set; }
 
-    public Tenant? Tenant { get; private set; }
-
     public string PackageId { get; private set; }
     public string PackageName { get; private set; }
 

@@ -1,3 +1,4 @@
+using NailManagement.Application.Common;
 using NailManagement.Domain.Salon.Invoices;
 using NailManagement.Domain.Shared;
 
@@ -77,18 +78,13 @@ public static class SalesInvoiceMapper
         };
 
     /// <summary>
-    /// Dựng DTO từ hóa đơn <b>đã được nạp kèm</b> dòng hóa đơn, dòng thu tiền, chi nhánh và
-    /// khách hàng.
-    /// <para>
-    /// Thiếu một phép nối là lỗi lập trình chứ không phải lỗi nghiệp vụ, nên nó ném ra
-    /// <see cref="InvalidOperationException"/> kèm tên bảng còn thiếu — hỏng ngay và nói rõ,
-    /// thay vì lặng lẽ trả về một hóa đơn không tên khách mà người dùng phải là người phát hiện.
-    /// </para>
+    /// Dựng DTO từ hóa đơn <b>đã được nạp kèm</b> dòng hóa đơn và dòng thu tiền — hai bảng con
+    /// của chính aggregate này — cùng danh bạ cho tên chi nhánh, khách và kỹ thuật viên.
     /// </summary>
-    public static SalesInvoiceDto ToDto(SalesInvoice invoice)
+    public static SalesInvoiceDto ToDto(SalesInvoice invoice, SalonDirectory directory)
     {
-        var branch = invoice.Branch ?? throw NotLoaded(invoice.Id, nameof(SalesInvoice.Branch));
-        var customer = invoice.Customer ?? throw NotLoaded(invoice.Id, nameof(SalesInvoice.Customer));
+        var branch = directory.Branch(invoice.BranchId);
+        var customer = directory.Customer(invoice.CustomerId);
 
         return new SalesInvoiceDto(
             invoice.Id,
@@ -100,7 +96,7 @@ public static class SalesInvoiceMapper
             customer.Phone.Value,
             invoice.AppointmentId,
             invoice.StaffId,
-            invoice.Staff?.FullName,
+            directory.StaffMemberOrNull(invoice.StaffId)?.FullName,
             invoice.Code,
             ToWireFormat(invoice.Status),
             invoice.Subtotal,
@@ -133,8 +129,4 @@ public static class SalesInvoiceMapper
             invoice.CreatedAt,
             invoice.UpdatedAt);
     }
-
-    private static InvalidOperationException NotLoaded(string invoiceId, string navigation)
-        => new($"Hóa đơn {invoiceId} được đọc mà chưa nạp kèm {navigation}. "
-               + "Truy vấn ở tầng lưu trữ phải Include bảng này trước khi dựng DTO.");
 }

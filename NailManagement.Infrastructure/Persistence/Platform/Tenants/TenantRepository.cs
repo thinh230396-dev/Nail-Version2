@@ -9,9 +9,8 @@ namespace NailManagement.Infrastructure.Persistence.Platform.Tenants;
 /// <summary>
 /// Bản cài đặt <see cref="ITenantRepository"/> bằng EF Core.
 /// <para>
-/// Mọi truy vấn ở đây đều nạp kèm gói đăng ký. Lý do: cả hai chỗ dùng tới tiệm — dựng phạm
-/// vi phiên và màn chọn tiệm — đều cần biết gói mở những tính năng nào (BR-SUB-007). Để
-/// tầng trên tự đi hỏi thêm một lượt nữa là thêm một vòng xuống database ở mỗi request.
+/// Trả về tiệm <b>không kèm</b> gói đăng ký — tiệm và gói là hai aggregate. Nơi cần cả hai đọc
+/// qua <c>TenantPlanReader</c>; bảng gói chỉ có vài dòng nên lượt đọc thêm ấy không đáng kể.
 /// </para>
 /// <para>
 /// Bộ lọc xóa mềm (BR-DEL-002) được <c>NailDbContext</c> gắn sẵn, nên tiệm đã xóa không
@@ -22,7 +21,6 @@ public sealed class TenantRepository(NailDbContext db) : ITenantRepository
 {
     public async Task<Tenant?> FindByIdAsync(string id, CancellationToken cancellationToken = default)
         => await db.Tenants
-            .Include(tenant => tenant.Package)
             .FirstOrDefaultAsync(tenant => tenant.Id == id, cancellationToken);
 
     public async Task<IReadOnlyList<Tenant>> ListByIdsAsync(
@@ -31,7 +29,6 @@ public sealed class TenantRepository(NailDbContext db) : ITenantRepository
         if (ids.Count == 0) return [];
 
         return await db.Tenants
-            .Include(tenant => tenant.Package)
             .Where(tenant => ids.Contains(tenant.Id))
             .OrderBy(tenant => tenant.Name)
             .ToListAsync(cancellationToken);
@@ -39,7 +36,6 @@ public sealed class TenantRepository(NailDbContext db) : ITenantRepository
 
     public async Task<IReadOnlyList<Tenant>> ListAllAsync(CancellationToken cancellationToken = default)
         => await db.Tenants
-            .Include(tenant => tenant.Package)
             // Tiệm mới nhất lên đầu: Superadmin vừa tạo xong một tiệm thì việc đầu tiên họ
             // muốn thấy là chính nó, không phải cuộn xuống cuối danh sách để tìm.
             .OrderByDescending(tenant => tenant.CreatedAt)

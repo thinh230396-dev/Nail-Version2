@@ -29,6 +29,7 @@ namespace NailManagement.Application.Features.SalesInvoices.UseCases;
 /// </summary>
 public sealed class CreateSalesInvoiceUseCase(
     ISalesInvoiceRepository invoices,
+    SalesInvoiceReadService reader,
     IAppointmentRepository appointments,
     ICustomerRepository customers,
     IBranchRepository branches,
@@ -98,13 +99,7 @@ public sealed class CreateSalesInvoiceUseCase(
 
             await invoices.AddAsync(invoice, ct);
 
-            // Đọc lại thay vì dựng DTO từ đối tượng vừa ghi: chi nhánh và khách hàng phải có mặt
-            // dưới dạng thuộc tính điều hướng thì mapper mới lấy được tên, và đọc lại còn bảo
-            // đảm phản hồi của lệnh tạo giống hệt thứ một lệnh đọc sau đó sẽ trả về.
-            var saved = await invoices.FindByIdAsync(invoice.Id, ct)
-                ?? throw new InvalidOperationException($"Hóa đơn {invoice.Id} vừa ghi xong nhưng đọc lại không thấy.");
-
-            return SalesInvoiceMapper.ToDto(saved);
+            return await reader.DescribeAsync(invoice, ct);
         }, cancellationToken);
     }
 

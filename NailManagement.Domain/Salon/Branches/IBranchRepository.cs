@@ -18,6 +18,14 @@ public interface IBranchRepository
 
     Task<Branch?> FindByIdAsync(string id, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Nhiều chi nhánh theo mã, trong tiệm đang làm việc, bằng MỘT truy vấn — cho các màn danh sách
+    /// cần hiện tên thay vì mã. Mã không tìm thấy thì vắng mặt trong kết quả; bản đọc không
+    /// được theo dõi thay đổi.
+    /// </summary>
+    Task<IReadOnlyDictionary<string, Branch>> ListByIdsAsync(
+        IReadOnlyCollection<string> ids, CancellationToken cancellationToken = default);
+
     /// <summary>BR-BRANCH-005 — đếm chi nhánh đang hoạt động để đối chiếu với <c>max_salons</c>.</summary>
     Task<int> CountActiveAsync(CancellationToken cancellationToken = default);
 

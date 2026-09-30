@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using NailManagement.Domain.Platform.Tenants;
 using NailManagement.Domain.Auth;
 
 namespace NailManagement.Infrastructure.Persistence.Auth;
@@ -18,12 +19,12 @@ public sealed class UserTenantConfiguration : IEntityTypeConfiguration<UserTenan
         builder.Property(link => link.TenantId).HasMaxLength(64).IsRequired();
         builder.Property(link => link.CreatedAt).IsRequired();
 
-        builder.HasOne(link => link.User)
+        builder.HasOne<AppUser>()
             .WithMany()
             .HasForeignKey(link => link.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        builder.HasOne(link => link.Tenant)
+        builder.HasOne<Tenant>()
             .WithMany()
             .HasForeignKey(link => link.TenantId)
             .OnDelete(DeleteBehavior.NoAction);

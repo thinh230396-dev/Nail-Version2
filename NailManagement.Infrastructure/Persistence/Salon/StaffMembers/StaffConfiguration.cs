@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using NailManagement.Domain.Salon.Branches;
 using NailManagement.Domain.Platform.Tenants;
 using NailManagement.Domain.Salon.StaffMembers;
 using NailManagement.Domain.ValueObjects;
@@ -50,7 +51,7 @@ public sealed class StaffConfiguration : IEntityTypeConfiguration<Staff>
             .HasForeignKey(staff => staff.TenantId)
             .OnDelete(DeleteBehavior.NoAction);
 
-        builder.HasOne(staff => staff.Branch)
+        builder.HasOne<Branch>()
             .WithMany()
             .HasForeignKey(staff => staff.BranchId)
             .OnDelete(DeleteBehavior.NoAction);

@@ -1,4 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
+using NailManagement.Application.Common;
 using NailManagement.Application.Features.Accounts;
 using NailManagement.Application.Features.Appointments;
 using NailManagement.Application.Features.Audit;
@@ -21,6 +22,10 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
+        // Dịch vụ dùng chung giữa các nghiệp vụ.
+        services.AddScoped<TenantPlanReader>();
+        services.AddScoped<ISalonDirectoryReader, SalonDirectoryReader>();
+
         services.AddAccountsFeature();
         services.AddAppointmentsFeature();
         services.AddAuditFeature();

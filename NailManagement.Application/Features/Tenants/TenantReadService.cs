@@ -1,3 +1,4 @@
+using NailManagement.Application.Common;
 using NailManagement.Domain.Auth;
 using NailManagement.Domain.Platform.Tenants;
 
@@ -19,7 +20,8 @@ namespace NailManagement.Application.Features.Tenants;
 /// </summary>
 public sealed class TenantReadService(
     ITenantRepository tenants,
-    IUserTenantRepository userTenants)
+    IUserTenantRepository userTenants,
+    TenantPlanReader plans)
 {
     public async Task<IReadOnlyList<TenantDetailDto>> DescribeManyAsync(
         IReadOnlyList<Tenant> source, DateTimeOffset now, CancellationToken cancellationToken = default)
@@ -27,40 +29,36 @@ public sealed class TenantReadService(
         if (source.Count == 0) return [];
 
         var ids = source.Select(tenant => tenant.Id).ToArray();
+        var withPlans = await plans.AttachAsync(source, cancellationToken);
         var usage = await tenants.ReadUsageAsync(ids, cancellationToken);
         var owners = await userTenants.ListOwnersAsync(ids, cancellationToken);
 
-        return [.. source.Select(tenant => Describe(tenant, usage, owners, now))];
+        return [.. withPlans.Select(plan => Describe(plan, usage, owners, now))];
     }
 
     public async Task<TenantDetailDto> DescribeAsync(
         Tenant tenant, DateTimeOffset now, CancellationToken cancellationToken = default)
     {
         string[] ids = [tenant.Id];
+        var plan = await plans.AttachAsync(tenant, cancellationToken);
         var usage = await tenants.ReadUsageAsync(ids, cancellationToken);
         var owners = await userTenants.ListOwnersAsync(ids, cancellationToken);
 
-        return Describe(tenant, usage, owners, now);
+        return Describe(plan, usage, owners, now);
     }
 
     private static TenantDetailDto Describe(
-        Tenant tenant,
+        TenantPlan plan,
         IReadOnlyDictionary<string, TenantUsage> usage,
         IReadOnlyDictionary<string, IReadOnlyList<AppUser>> owners,
         DateTimeOffset now)
     {
-        // Gói bắt buộc phải được nạp kèm — hợp đồng của ITenantRepository nói rõ như vậy.
-        // Thiếu nó là lỗi lập trình ở tầng lưu trữ, không phải lỗi nghiệp vụ, nên ném ngoại
-        // lệ thường để nó hiện trong log máy chủ thay vì lặng lẽ trả ra một tiệm không gói.
-        if (tenant.Package is null)
-            throw new InvalidOperationException(
-                $"Tiệm {tenant.Id} không đọc được gói đăng ký. Kho dữ liệu phải trả về tiệm kèm gói.");
-
+        var tenant = plan.Tenant;
         var tenantOwners = owners.TryGetValue(tenant.Id, out var list) ? list : [];
 
         return TenantMapper.ToDetail(
             tenant,
-            tenant.Package,
+            plan.Package,
             usage.TryGetValue(tenant.Id, out var counts) ? counts : null,
             [.. tenantOwners.Select(TenantMapper.ToOwner)],
             now);

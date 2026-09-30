@@ -24,6 +24,15 @@ public sealed class BranchRepository(NailDbContext db) : IBranchRepository
             .ThenBy(branch => branch.Name)
             .ToListAsync(cancellationToken);
 
+    public async Task<IReadOnlyDictionary<string, Branch>> ListByIdsAsync(
+        IReadOnlyCollection<string> ids, CancellationToken cancellationToken = default)
+        => ids.Count == 0
+            ? new Dictionary<string, Branch>()
+            : await db.Branches
+                .AsNoTracking()
+                .Where(branch => ids.Contains(branch.Id))
+                .ToDictionaryAsync(branch => branch.Id, StringComparer.Ordinal, cancellationToken);
+
     public async Task<Branch?> FindByIdAsync(string id, CancellationToken cancellationToken = default)
         => await db.Branches.FirstOrDefaultAsync(branch => branch.Id == id, cancellationToken);
 

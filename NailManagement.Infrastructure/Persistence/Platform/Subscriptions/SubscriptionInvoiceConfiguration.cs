@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using NailManagement.Domain.Platform.Tenants;
 using NailManagement.Domain.Platform.Subscriptions;
 
 namespace NailManagement.Infrastructure.Persistence.Platform.Subscriptions;
@@ -32,7 +33,7 @@ public sealed class SubscriptionInvoiceConfiguration : IEntityTypeConfiguration<
 
         // BR-TENANT-022 — hóa đơn của tiệm đã xóa mềm vẫn ở lại và vẫn tính vào doanh thu
         // nền tảng, nên quan hệ này không bao giờ được xóa lan.
-        builder.HasOne(invoice => invoice.Tenant)
+        builder.HasOne<Tenant>()
             .WithMany()
             .HasForeignKey(invoice => invoice.TenantId)
             .OnDelete(DeleteBehavior.NoAction);

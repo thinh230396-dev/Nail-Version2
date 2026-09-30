@@ -47,7 +47,6 @@ public class Service : ITenantOwned
 
     public string Id { get; private set; }
     public string TenantId { get; private set; }
-    public Tenant? Tenant { get; private set; }
 
     /// <summary>BR-VAL-001 — tên dịch vụ duy nhất trong một tiệm.</summary>
     public string Name { get; private set; }

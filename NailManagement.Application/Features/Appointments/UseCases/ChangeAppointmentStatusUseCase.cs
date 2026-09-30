@@ -38,6 +38,7 @@ namespace NailManagement.Application.Features.Appointments.UseCases;
 public sealed class ChangeAppointmentStatusUseCase(
     IAppointmentRepository appointments,
     ISalesInvoiceRepository invoices,
+    AppointmentReadService reader,
     IClock clock)
 {
     public async Task<AppointmentDto> ExecuteAsync(
@@ -61,7 +62,7 @@ public sealed class ChangeAppointmentStatusUseCase(
 
         await appointments.UpdateAsync(appointment, cancellationToken);
 
-        return AppointmentMapper.ToDto(appointment, now);
+        return await reader.DescribeAsync(appointment, now, cancellationToken);
     }
 
     /// <summary>

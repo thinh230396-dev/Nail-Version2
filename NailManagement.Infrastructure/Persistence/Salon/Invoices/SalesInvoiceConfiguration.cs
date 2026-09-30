@@ -1,5 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using NailManagement.Domain.Salon.Appointments;
+using NailManagement.Domain.Salon.Branches;
+using NailManagement.Domain.Salon.Customers;
+using NailManagement.Domain.Salon.StaffMembers;
 using NailManagement.Domain.Platform.Tenants;
 using NailManagement.Domain.Salon.Invoices;
 using NailManagement.Infrastructure.Persistence.Salon.Appointments;
@@ -45,25 +49,25 @@ public sealed class SalesInvoiceConfiguration : IEntityTypeConfiguration<SalesIn
         // Bốn khóa ngoại ghép, kèm cột tiệm — xem chú thích dài ở AppointmentConfiguration. Ở
         // bảng này ràng buộc còn đáng giá hơn: một hóa đơn gắn nhầm sang khách hoặc kỹ thuật
         // viên của tiệm khác là con số doanh thu của hai tiệm cùng sai một lúc (BR-REV-004).
-        builder.HasOne(invoice => invoice.Branch)
+        builder.HasOne<Branch>()
             .WithMany()
             .HasForeignKey(invoice => new { invoice.BranchId, invoice.TenantId })
             .HasPrincipalKey(branch => new { branch.Id, branch.TenantId })
             .OnDelete(DeleteBehavior.NoAction);
 
-        builder.HasOne(invoice => invoice.Customer)
+        builder.HasOne<Customer>()
             .WithMany()
             .HasForeignKey(invoice => new { invoice.CustomerId, invoice.TenantId })
             .HasPrincipalKey(customer => new { customer.Id, customer.TenantId })
             .OnDelete(DeleteBehavior.NoAction);
 
-        builder.HasOne(invoice => invoice.Appointment)
+        builder.HasOne<Appointment>()
             .WithMany()
             .HasForeignKey(invoice => new { invoice.AppointmentId, invoice.TenantId })
             .HasPrincipalKey(appointment => new { appointment.Id, appointment.TenantId })
             .OnDelete(DeleteBehavior.NoAction);
 
-        builder.HasOne(invoice => invoice.Staff)
+        builder.HasOne<Staff>()
             .WithMany()
             .HasForeignKey(invoice => new { invoice.StaffId, invoice.TenantId })
             .HasPrincipalKey(staff => new { staff.Id, staff.TenantId })

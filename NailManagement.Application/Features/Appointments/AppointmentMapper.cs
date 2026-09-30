@@ -1,3 +1,4 @@
+using NailManagement.Application.Common;
 using NailManagement.Domain.Salon.Appointments;
 using NailManagement.Domain.Salon.Customers;
 using NailManagement.Domain.Shared;
@@ -78,10 +79,9 @@ public static class AppointmentMapper
     /// <summary>
     /// Dựng DTO từ lịch hẹn cùng hai bản ghi liên quan.
     /// <para>
-    /// Khách và kỹ thuật viên được truyền vào chứ không đọc qua thuộc tính điều hướng, để
-    /// nơi gọi buộc phải nạp chúng một cách có chủ đích. Đọc thẳng <c>appointment.Customer</c>
-    /// ở đây là mở đường cho một truy vấn quên nạp rồi lặng lẽ trả ra một danh sách toàn tên
-    /// rỗng, hoặc tệ hơn là nạp lẻ từng dòng.
+    /// Khách và kỹ thuật viên được truyền vào vì lịch hẹn chỉ giữ <b>mã</b> của hai aggregate
+    /// đó, không giữ thuộc tính điều hướng. Nơi gọi vì vậy buộc phải nạp chúng có chủ đích —
+    /// không có đường nào để một truy vấn quên nạp rồi lặng lẽ trả ra danh sách toàn tên rỗng.
     /// </para>
     /// </summary>
     /// <param name="now">
@@ -121,23 +121,15 @@ public static class AppointmentMapper
         appointment.UpdatedAt);
 
     /// <summary>
-    /// Dựng DTO từ một lịch hẹn <b>đã được nạp kèm</b> khách và kỹ thuật viên.
-    /// <para>
-    /// Dành cho hai đường đọc, nơi kho dữ liệu đã nối sẵn hai bảng đó trong cùng một câu truy
-    /// vấn. Thiếu phép nối ấy là lỗi lập trình chứ không phải lỗi nghiệp vụ, nên nó ném ra
-    /// <see cref="InvalidOperationException"/> kèm tên bảng còn thiếu — hỏng ngay và nói rõ,
-    /// thay vì lặng lẽ trả về một danh sách toàn tên rỗng mà người dùng phải là người phát hiện.
-    /// </para>
+    /// Dựng DTO từ một lịch hẹn cùng danh bạ đã đọc sẵn cho cả danh sách — dành cho các đường
+    /// đọc, nơi một câu truy vấn trả về nhiều lịch hẹn của nhiều khách và nhiều kỹ thuật viên.
     /// </summary>
-    public static AppointmentDto ToDto(Appointment appointment, DateTimeOffset now) => ToDto(
-        appointment,
-        appointment.Customer ?? throw NotLoaded(appointment.Id, nameof(Appointment.Customer)),
-        appointment.Staff ?? throw NotLoaded(appointment.Id, nameof(Appointment.Staff)),
-        now);
-
-    private static InvalidOperationException NotLoaded(string appointmentId, string navigation)
-        => new($"Lịch hẹn {appointmentId} được đọc mà chưa nạp kèm {navigation}. "
-               + "Truy vấn ở tầng lưu trữ phải Include bảng này trước khi dựng DTO.");
+    public static AppointmentDto ToDto(Appointment appointment, SalonDirectory directory, DateTimeOffset now)
+        => ToDto(
+            appointment,
+            directory.Customer(appointment.CustomerId),
+            directory.StaffMember(appointment.StaffId),
+            now);
 
     /// <summary>
     /// BR §8 giả định 3 — lịch còn chờ xác nhận mà giờ hẹn đã trôi qua thì mang nhãn quá hạn,

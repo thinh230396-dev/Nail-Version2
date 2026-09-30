@@ -1,7 +1,6 @@
 using NailManagement.Application.Abstractions;
 using NailManagement.Application.Common.Exceptions;
 using NailManagement.Application.Features.Branches;
-using NailManagement.Domain.Platform.Tenants;
 using NailManagement.Domain.Salon.Branches;
 using NailManagement.Domain.Shared;
 
@@ -22,7 +21,7 @@ namespace NailManagement.Application.Features.Branches.UseCases;
 /// </summary>
 public sealed class CreateBranchUseCase(
     IBranchRepository branches,
-    ITenantRepository tenants,
+    BranchQuotaGuard quota,
     ITenantContext tenantContext,
     IIdGenerator ids,
     IClock clock)
@@ -37,26 +36,12 @@ public sealed class CreateBranchUseCase(
         var tenantId = tenantContext.ActiveTenantId
             ?? throw new TenantNotSelectedException();
 
-        var tenant = await tenants.FindByIdAsync(tenantId, cancellationToken)
-            ?? throw new NotFoundException("Không tìm thấy tiệm đang làm việc.");
-
-        if (tenant.Package is null)
-            throw new InvalidOperationException(
-                $"Tiệm {tenant.Id} không đọc được gói đăng ký. Kho dữ liệu phải trả về tiệm kèm gói.");
-
         var name = Guard.Length(command.Name, "name", "Tên chi nhánh", 3, 80);
 
         if (await branches.NameExistsAsync(name, null, cancellationToken))
             throw DomainException.ForField("name", $"Tiệm đã có chi nhánh tên {name}.");
 
-        var activeCount = await branches.CountActiveAsync(cancellationToken);
-
-        if (activeCount >= tenant.Package.MaxSalons)
-        {
-            throw new LimitExceededException(
-                $"Gói {tenant.Package.Name} chỉ cho phép {tenant.Package.MaxSalons} chi nhánh đang hoạt động. "
-                + "Nâng gói để thêm chi nhánh mới.");
-        }
+        await quota.EnsureRoomForOneMoreAsync(tenantId, isReactivating: false, cancellationToken);
 
         var branch = Branch.Create(
             ids.NewId("BRN"),

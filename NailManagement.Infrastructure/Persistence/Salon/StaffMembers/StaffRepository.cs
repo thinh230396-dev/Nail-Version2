@@ -7,15 +7,28 @@ namespace NailManagement.Infrastructure.Persistence.Salon.StaffMembers;
 /// <summary>Bản cài đặt <see cref="IStaffRepository"/> bằng EF Core.</summary>
 public sealed class StaffRepository(NailDbContext db) : IStaffRepository
 {
-    public async Task<Staff?> FindForSessionAsync(
+    public async Task<StaffBranchScope?> FindBranchScopeForSessionAsync(
         string staffId, CancellationToken cancellationToken = default)
-        => await db.Staff
-            // Cố ý bỏ qua bộ lọc theo tiệm: lời gọi này diễn ra trong lúc phiên còn đang
-            // được dựng, nên chưa có tiệm nào để mà lọc. Use case gọi tới phải tự đối chiếu
-            // TenantId của hồ sơ với tiệm đang làm việc — xem chú thích ở IStaffRepository.
-            .IgnoreQueryFilters()
-            .Include(staff => staff.Branch)
-            .FirstOrDefaultAsync(staff => staff.Id == staffId, cancellationToken);
+        // Cố ý bỏ qua bộ lọc theo tiệm ở CẢ HAI bảng: lời gọi này diễn ra trong lúc phiên còn
+        // đang được dựng, nên chưa có tiệm nào để mà lọc. Use case gọi tới phải tự đối chiếu
+        // TenantId trả về với tiệm đang làm việc — xem chú thích ở IStaffRepository.
+        => await (
+                from staff in db.Staff.IgnoreQueryFilters()
+                join branch in db.Branches.IgnoreQueryFilters()
+                    on new { Id = staff.BranchId, staff.TenantId } equals new { branch.Id, branch.TenantId }
+                where staff.Id == staffId
+                select new StaffBranchScope(staff.Id, staff.TenantId, branch.Id, branch.Code, branch.Name))
+            .AsNoTracking()
+            .FirstOrDefaultAsync(cancellationToken);
+
+    public async Task<IReadOnlyDictionary<string, Staff>> ListByIdsAsync(
+        IReadOnlyCollection<string> ids, CancellationToken cancellationToken = default)
+        => ids.Count == 0
+            ? new Dictionary<string, Staff>()
+            : await db.Staff
+                .AsNoTracking()
+                .Where(staff => ids.Contains(staff.Id))
+                .ToDictionaryAsync(staff => staff.Id, StringComparer.Ordinal, cancellationToken);
 
     public async Task<IReadOnlyList<Staff>> ListAsync(
         string? branchId, CancellationToken cancellationToken = default)

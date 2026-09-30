@@ -62,8 +62,6 @@ public class Staff : ITenantOwned, IBranchOwned
     /// <summary>BR-EMP-003 — mỗi nhân viên gắn đúng một chi nhánh; chuyển chi nhánh là sửa trường này.</summary>
     public string BranchId { get; private set; }
 
-    public Branch? Branch { get; private set; }
-
     public string FullName { get; private set; }
     public PhoneNumber? Phone { get; private set; }
     public string? Email { get; private set; }

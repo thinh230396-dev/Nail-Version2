@@ -39,6 +39,7 @@ namespace NailManagement.Application.Features.SalesInvoices.UseCases;
 /// </summary>
 public sealed class IssueRefundUseCase(
     ISalesInvoiceRepository invoices,
+    SalesInvoiceReadService reader,
     IUnitOfWork unitOfWork,
     IAuditLogger audit,
     IIdGenerator ids,
@@ -108,6 +109,6 @@ public sealed class IssueRefundUseCase(
             return refund;
         }, cancellationToken);
 
-        return SalesInvoiceMapper.ToDto(invoice);
+        return await reader.DescribeAsync(invoice, cancellationToken);
     }
 }

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using NailManagement.Domain.Platform.Tenants;
 using NailManagement.Domain.Platform.Subscriptions;
 
 namespace NailManagement.Infrastructure.Persistence.Platform.Subscriptions;
@@ -31,7 +32,7 @@ public sealed class PackageUpgradeRequestConfiguration : IEntityTypeConfiguratio
         builder.Property(request => request.InvoiceId).HasMaxLength(64);
         builder.Property(request => request.RequestedAt).IsRequired();
 
-        builder.HasOne(request => request.Tenant)
+        builder.HasOne<Tenant>()
             .WithMany()
             .HasForeignKey(request => request.TenantId)
             .OnDelete(DeleteBehavior.NoAction);

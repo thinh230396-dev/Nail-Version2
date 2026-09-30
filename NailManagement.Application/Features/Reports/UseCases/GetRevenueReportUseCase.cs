@@ -24,7 +24,10 @@ namespace NailManagement.Application.Features.Reports.UseCases;
 /// dùng tự chọn trên màn hình.
 /// </para>
 /// </summary>
-public sealed class GetRevenueReportUseCase(IRevenueRepository revenue, IClock clock)
+public sealed class GetRevenueReportUseCase(
+    IRevenueRepository revenue,
+    ISalonDirectoryReader directory,
+    IClock clock)
 {
     /// <summary>
     /// Trần độ dài khoảng ngày, giống hai endpoint đọc theo khoảng đã có. Chọn 366 chứ không
@@ -59,6 +62,12 @@ public sealed class GetRevenueReportUseCase(IRevenueRepository revenue, IClock c
             .Where(slice => slice.Payments.Count > 0)
             .ToList();
 
+        var names = await directory.LoadAsync(
+            slices.Select(slice => slice.Invoice.BranchId),
+            [],
+            slices.Select(slice => slice.Invoice.StaffId),
+            cancellationToken);
+
         return new RevenueReportDto(
             start,
             end,
@@ -69,8 +78,8 @@ public sealed class GetRevenueReportUseCase(IRevenueRepository revenue, IClock c
             slices.Sum(slice => slice.Refunded),
             slices.Count,
             ByDay(slices),
-            ByBranch(slices),
-            ByStaff(slices),
+            ByBranch(slices, names),
+            ByStaff(slices, names),
             ByService(slices));
     }
 
@@ -142,12 +151,12 @@ public sealed class GetRevenueReportUseCase(IRevenueRepository revenue, IClock c
                 group.Sum(slice => slice.Collected),
                 group.Select(payment => payment.Id).Distinct().Count()))];
 
-    private static IReadOnlyList<RevenueBreakdownRow> ByBranch(IEnumerable<InvoiceSlice> slices)
+    private static IReadOnlyList<RevenueBreakdownRow> ByBranch(IEnumerable<InvoiceSlice> slices, SalonDirectory names)
         => [.. slices
             .GroupBy(slice => slice.Invoice.BranchId)
             .Select(group => new RevenueBreakdownRow(
                 group.Key,
-                group.First().Invoice.Branch?.Name ?? group.Key,
+                names.BranchOrNull(group.Key)?.Name ?? group.Key,
                 group.Sum(slice => slice.Revenue),
                 group.Sum(slice => slice.Collected),
                 group.Count()))
@@ -162,12 +171,12 @@ public sealed class GetRevenueReportUseCase(IRevenueRepository revenue, IClock c
     /// ấy mang khóa rỗng và tỉ lệ hoa hồng bằng 0.
     /// </para>
     /// </summary>
-    private static IReadOnlyList<StaffRevenueRow> ByStaff(IEnumerable<InvoiceSlice> slices)
+    private static IReadOnlyList<StaffRevenueRow> ByStaff(IEnumerable<InvoiceSlice> slices, SalonDirectory names)
         => [.. slices
             .GroupBy(slice => slice.Invoice.StaffId ?? string.Empty)
             .Select(group =>
             {
-                var staff = group.First().Invoice.Staff;
+                var staff = names.StaffMemberOrNull(group.First().Invoice.StaffId);
                 var earned = group.Sum(slice => slice.Revenue);
                 var rate = staff?.CommissionRate ?? 0m;
 

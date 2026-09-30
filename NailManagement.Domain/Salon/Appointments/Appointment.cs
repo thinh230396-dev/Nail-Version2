@@ -67,17 +67,11 @@ public class Appointment : ITenantOwned, IBranchOwned
     /// <summary>BR-BRANCH-007 — lịch hẹn thuộc riêng một chi nhánh; lễ tân chỉ thấy chi nhánh mình.</summary>
     public string BranchId { get; private set; }
 
-    public Branch? Branch { get; private set; }
-
     /// <summary>BR-CUS-004 — mọi lịch hẹn bắt buộc gắn một hồ sơ khách, không có khách vãng lai ẩn danh.</summary>
     public string CustomerId { get; private set; }
 
-    public Customer? Customer { get; private set; }
-
     /// <summary>BR-APT-004 — đúng một kỹ thuật viên phụ trách toàn bộ lịch hẹn.</summary>
     public string StaffId { get; private set; }
-
-    public Staff? Staff { get; private set; }
 
     public DateTimeOffset StartAt { get; private set; }
 

@@ -15,7 +15,10 @@ namespace NailManagement.Application.Features.Appointments.UseCases;
 /// dựng thêm một thứ phải giữ cho khớp.
 /// </para>
 /// </summary>
-public sealed class GetAppointmentUseCase(IAppointmentRepository appointments, IClock clock)
+public sealed class GetAppointmentUseCase(
+    IAppointmentRepository appointments,
+    AppointmentReadService reader,
+    IClock clock)
 {
     public async Task<AppointmentDto> ExecuteAsync(
         string id, ActorContext actor, CancellationToken cancellationToken = default)
@@ -25,6 +28,6 @@ public sealed class GetAppointmentUseCase(IAppointmentRepository appointments, I
             actor,
             "Không tìm thấy lịch hẹn.");
 
-        return AppointmentMapper.ToDto(appointment, clock.UtcNow);
+        return await reader.DescribeAsync(appointment, clock.UtcNow, cancellationToken);
     }
 }

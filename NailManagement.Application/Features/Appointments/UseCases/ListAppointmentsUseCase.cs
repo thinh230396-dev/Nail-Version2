@@ -19,7 +19,10 @@ namespace NailManagement.Application.Features.Appointments.UseCases;
 /// nhánh mình (BR-APT-002), và chi nhánh lấy từ phiên đăng nhập chứ không từ chuỗi truy vấn.
 /// </para>
 /// </summary>
-public sealed class ListAppointmentsUseCase(IAppointmentRepository appointments, IClock clock)
+public sealed class ListAppointmentsUseCase(
+    IAppointmentRepository appointments,
+    AppointmentReadService reader,
+    IClock clock)
 {
     /// <summary>
     /// Trần độ dài khoảng ngày. Không có nó thì <c>?from=2000-01-01&amp;to=2100-01-01</c> đưa
@@ -61,7 +64,7 @@ public sealed class ListAppointmentsUseCase(IAppointmentRepository appointments,
 
         // Cùng một mốc "bây giờ" cho cả danh sách, để nhãn quá hạn không thể đúng ở dòng này
         // và sai ở dòng kia chỉ vì câu lệnh chạy vắt qua một phút.
-        return [.. found.Select(appointment => AppointmentMapper.ToDto(appointment, now))];
+        return await reader.DescribeManyAsync(found, now, cancellationToken);
     }
 
 }

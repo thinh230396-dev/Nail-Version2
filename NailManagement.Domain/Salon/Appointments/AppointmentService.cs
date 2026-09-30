@@ -58,7 +58,6 @@ public class AppointmentService : ITenantOwned
     public int BufferMinutes { get; private set; }
 
     public Appointment? Appointment { get; private set; }
-    public Service? Service { get; private set; }
 
     public static AppointmentService Create(
         string id,

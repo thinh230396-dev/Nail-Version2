@@ -1,8 +1,12 @@
 using NailManagement.Application.Abstractions;
+using NailManagement.Application.Common;
 using NailManagement.Application.Features.Reports;
 using NailManagement.Application.Features.Reports.UseCases;
+using NailManagement.Domain.Salon.Branches;
+using NailManagement.Domain.Salon.Customers;
 using NailManagement.Domain.Salon.Invoices;
 using NailManagement.Domain.Salon.Revenue;
+using NailManagement.Domain.Salon.StaffMembers;
 using NailManagement.Infrastructure.Persistence.Salon.Revenue;
 
 namespace NailManagement.Tests.Reports;
@@ -154,7 +158,7 @@ public sealed class RevenueReportTests
 
     private static Task<RevenueReportDto> Report(SalesInvoice invoice,
         DateTimeOffset? from = null, DateTimeOffset? to = null)
-        => new GetRevenueReportUseCase(new RevenueRepository(invoice), new FixedClock())
+        => new GetRevenueReportUseCase(new RevenueRepository(invoice), new EmptyDirectory(), new FixedClock())
             .ExecuteAsync(from ?? Start, to ?? Start.AddDays(3), null);
 
     private sealed class RevenueRepository(SalesInvoice invoice) : IRevenueRepository
@@ -162,6 +166,21 @@ public sealed class RevenueReportTests
         public Task<IReadOnlyList<SalesInvoice>> ListCollectedBetweenAsync(
             DateTimeOffset from, DateTimeOffset to, string? branchId, CancellationToken cancellationToken = default)
             => Task.FromResult<IReadOnlyList<SalesInvoice>>([invoice]);
+    }
+
+    // Các phép thử ở đây kiểm con số, không kiểm tên: danh bạ rỗng để báo cáo rơi về mã chi
+    // nhánh và dòng "Chưa ghi công", đúng như khi một tên không đọc được.
+    private sealed class EmptyDirectory : ISalonDirectoryReader
+    {
+        public Task<SalonDirectory> LoadAsync(
+            IEnumerable<string> branchIds,
+            IEnumerable<string> customerIds,
+            IEnumerable<string?> staffIds,
+            CancellationToken cancellationToken = default)
+            => Task.FromResult(new SalonDirectory(
+                new Dictionary<string, Branch>(),
+                new Dictionary<string, Customer>(),
+                new Dictionary<string, Staff>()));
     }
 
     private sealed class FixedClock : IClock

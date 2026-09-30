@@ -14,9 +14,9 @@ namespace NailManagement.Infrastructure.Persistence.Salon.Appointments;
 /// lịch hẹn cùng các dòng dịch vụ của nó đều mang giao diện ấy.
 /// </para>
 /// <para>
-/// Ba phép nối <c>Include</c> lặp lại ở cả hai đường đọc nên chúng đi qua một hàm dùng chung.
-/// Đó không phải chuyện gọn mã: <c>AppointmentMapper</c> đọc thẳng khách và kỹ thuật viên từ
-/// thuộc tính điều hướng, nên một đường đọc quên nối là một màn hình toàn tên rỗng.
+/// Hai đường đọc cùng nạp dòng dịch vụ qua một hàm dùng chung. Khách và kỹ thuật viên thì
+/// không: lịch hẹn chỉ giữ mã của chúng, và tên hiển thị do <c>AppointmentReadService</c> đọc
+/// theo lô ở tầng Application.
 /// </para>
 /// </summary>
 public sealed class AppointmentRepository(NailDbContext db) : IAppointmentRepository
@@ -60,10 +60,6 @@ public sealed class AppointmentRepository(NailDbContext db) : IAppointmentReposi
             // bản sao thứ hai của một luật mà lộ trình xếp vào nhóm tuyệt đối không được sai —
             // và bản sao ấy sẽ im lặng khi ai đó sửa bản gốc.
             .Where(AppointmentSchedulePolicy.BlockingSlot(staffId, start, end, exceptAppointmentId))
-
-            // Chỉ cần tên khách để dựng câu thông báo, nên nối đúng một bảng chứ không dùng
-            // lại Readable(): dòng dịch vụ và hồ sơ nhân viên không xuất hiện trong câu ấy.
-            .Include(appointment => appointment.Customer)
             .OrderBy(appointment => appointment.StartAt)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -84,17 +80,11 @@ public sealed class AppointmentRepository(NailDbContext db) : IAppointmentReposi
     }
 
     /// <summary>
-    /// Hình dạng chung của hai đường đọc: lịch hẹn kèm dòng dịch vụ, khách và kỹ thuật viên.
-    /// <para>
-    /// <c>AsSplitQuery</c> vì đây là một phép nối một–nhiều lồng cùng hai phép nối một–một:
-    /// gộp vào một câu thì mỗi lịch hẹn bị nhân lên đúng bằng số dòng dịch vụ của nó, và toàn
-    /// bộ hồ sơ khách cùng hồ sơ nhân viên bị chép lại ở từng dòng ấy.
-    /// </para>
+    /// Hình dạng chung của hai đường đọc: lịch hẹn kèm dòng dịch vụ — bảng con của chính
+    /// aggregate này. Tên khách và kỹ thuật viên không nạp ở đây: đó là hai aggregate khác, và
+    /// tầng Application đọc chúng theo lô qua <c>SalonDirectoryReader</c>.
     /// </summary>
     private IQueryable<Appointment> Readable()
         => db.Appointments
-            .Include(appointment => appointment.Services)
-            .Include(appointment => appointment.Customer)
-            .Include(appointment => appointment.Staff)
-            .AsSplitQuery();
+            .Include(appointment => appointment.Services);
 }

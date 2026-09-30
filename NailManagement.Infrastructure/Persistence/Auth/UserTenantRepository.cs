@@ -32,25 +32,25 @@ public sealed class UserTenantRepository(NailDbContext db) : IUserTenantReposito
     {
         if (tenantIds.Count == 0) return new Dictionary<string, IReadOnlyList<AppUser>>();
 
-        var rows = await db.UserTenants
-            // CHỈ tài khoản chủ tiệm. Bảng nối này còn mang cả lễ tân — họ cũng cần một tiệm
-            // để làm việc — nên thiếu điều kiện lọc theo vai trò thì màn quản lý tiệm sẽ trưng
-            // một lễ tân ra ở cột "Chủ tiệm chính", và tệ hơn: người được giao sớm nhất là lễ
-            // tân, nên chính họ đứng đầu danh sách.
-            .Where(link => tenantIds.Contains(link.TenantId)
-                           && link.User!.Role == UserRole.TenantAdmin)
-            .Include(link => link.User)
-            // Người được giao sớm nhất đứng đầu, nên "chủ tiệm chính" mà màn hình hiển thị
-            // luôn là cùng một người ở mọi lần tải, không đổi theo thứ tự database trả về.
-            .OrderBy(link => link.CreatedAt)
+        var rows = await (
+                from link in db.UserTenants
+                join user in db.AppUsers on link.UserId equals user.Id
+                // CHỈ tài khoản chủ tiệm. Bảng nối này còn mang cả lễ tân — họ cũng cần một tiệm
+                // để làm việc — nên thiếu điều kiện lọc theo vai trò thì màn quản lý tiệm sẽ trưng
+                // một lễ tân ra ở cột "Chủ tiệm chính", và tệ hơn: người được giao sớm nhất là lễ
+                // tân, nên chính họ đứng đầu danh sách.
+                where tenantIds.Contains(link.TenantId) && user.Role == UserRole.TenantAdmin
+                // Người được giao sớm nhất đứng đầu, nên "chủ tiệm chính" mà màn hình hiển thị
+                // luôn là cùng một người ở mọi lần tải, không đổi theo thứ tự database trả về.
+                orderby link.CreatedAt
+                select new { link.TenantId, User = user })
             .ToListAsync(cancellationToken);
 
         return rows
-            .Where(link => link.User is not null)
-            .GroupBy(link => link.TenantId)
+            .GroupBy(row => row.TenantId)
             .ToDictionary(
                 group => group.Key,
-                group => (IReadOnlyList<AppUser>)[.. group.Select(link => link.User!)]);
+                group => (IReadOnlyList<AppUser>)[.. group.Select(row => row.User)]);
     }
 
     /// <summary>

@@ -63,25 +63,17 @@ public class SalesInvoice : ITenantOwned, IBranchOwned
     /// <summary>BR-BRANCH-007 — hóa đơn thuộc riêng chi nhánh, là chiều "chi nhánh" của báo cáo doanh thu.</summary>
     public string BranchId { get; private set; }
 
-    public Branch? Branch { get; private set; }
-
     /// <summary>BR-CUS-004 — mọi hóa đơn bắt buộc gắn một hồ sơ khách.</summary>
     public string CustomerId { get; private set; }
 
-    public Customer? Customer { get; private set; }
-
     /// <summary>BR-INV-011 — rỗng nghĩa là khách mua lẻ, không đi từ lịch hẹn nào.</summary>
     public string? AppointmentId { get; private set; }
-
-    public Appointment? Appointment { get; private set; }
 
     /// <summary>
     /// Kỹ thuật viên được ghi công cho hóa đơn này — chiều "nhân viên" của báo cáo doanh
     /// thu (BR-REV-004) và là nguồn tính hoa hồng ở BR-EMP-011.
     /// </summary>
     public string? StaffId { get; private set; }
-
-    public Staff? Staff { get; private set; }
 
     /// <summary>BR-INV-016 — số hóa đơn dạng HD-yyyyMMdd-nnn, đánh theo từng tiệm và reset mỗi ngày.</summary>
     public string Code { get; private set; }

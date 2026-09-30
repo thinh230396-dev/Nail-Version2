@@ -26,6 +26,7 @@ namespace NailManagement.Application.Features.SalesInvoices.UseCases;
 /// </summary>
 public sealed class UpdateSalesInvoiceUseCase(
     ISalesInvoiceRepository invoices,
+    SalesInvoiceReadService reader,
     IStaffRepository staffMembers,
     SalesInvoiceLineBuilder lineBuilder,
     IIdGenerator ids,
@@ -64,10 +65,7 @@ public sealed class UpdateSalesInvoiceUseCase(
 
         await invoices.UpdateAsync(invoice, cancellationToken);
 
-        var saved = await invoices.FindByIdAsync(invoice.Id, cancellationToken)
-            ?? throw new InvalidOperationException($"Hóa đơn {invoice.Id} vừa lưu xong nhưng đọc lại không thấy.");
-
-        return SalesInvoiceMapper.ToDto(saved);
+        return await reader.DescribeAsync(invoice, cancellationToken);
     }
 
     private async Task<string?> ResolveStaffAsync(

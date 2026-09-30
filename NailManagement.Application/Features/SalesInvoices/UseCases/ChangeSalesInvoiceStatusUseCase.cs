@@ -21,7 +21,10 @@ namespace NailManagement.Application.Features.SalesInvoices.UseCases;
 /// một lỗ mà người kiểm tra sổ sách sẽ hỏi.
 /// </para>
 /// </summary>
-public sealed class ChangeSalesInvoiceStatusUseCase(ISalesInvoiceRepository invoices, IClock clock)
+public sealed class ChangeSalesInvoiceStatusUseCase(
+    ISalesInvoiceRepository invoices,
+    SalesInvoiceReadService reader,
+    IClock clock)
 {
     public async Task<SalesInvoiceDto> ExecuteAsync(
         ChangeSalesInvoiceStatusCommand command,
@@ -41,6 +44,6 @@ public sealed class ChangeSalesInvoiceStatusUseCase(ISalesInvoiceRepository invo
 
         await invoices.UpdateAsync(invoice, cancellationToken);
 
-        return SalesInvoiceMapper.ToDto(invoice);
+        return await reader.DescribeAsync(invoice, cancellationToken);
     }
 }

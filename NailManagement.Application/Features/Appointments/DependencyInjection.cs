@@ -8,6 +8,7 @@ public static class AppointmentsFeatureRegistration
     public static IServiceCollection AddAppointmentsFeature(this IServiceCollection services)
     {
         services.AddScoped<AppointmentBookingGuard>();
+        services.AddScoped<AppointmentReadService>();
         services.AddScoped<ListAppointmentsUseCase>();
         services.AddScoped<GetAppointmentUseCase>();
         services.AddScoped<CreateAppointmentUseCase>();

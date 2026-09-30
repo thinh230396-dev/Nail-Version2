@@ -7,6 +7,7 @@ public static class BranchesFeatureRegistration
 {
     public static IServiceCollection AddBranchesFeature(this IServiceCollection services)
     {
+        services.AddScoped<BranchQuotaGuard>();
         services.AddScoped<ListBranchesUseCase>();
         services.AddScoped<CreateBranchUseCase>();
         services.AddScoped<UpdateBranchUseCase>();

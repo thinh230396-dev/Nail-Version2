@@ -1,4 +1,5 @@
 using NailManagement.Application.Abstractions;
+using NailManagement.Application.Common;
 using NailManagement.Application.Common.Exceptions;
 using NailManagement.Application.Features.Accounts;
 using NailManagement.Application.Features.Auth;
@@ -30,6 +31,7 @@ public sealed class GetCurrentAccountUseCase(
     ISessionRepository sessions,
     IUserTenantRepository userTenants,
     ITenantRepository tenants,
+    TenantPlanReader plans,
     IStaffRepository staffMembers,
     IClock clock)
 {
@@ -94,15 +96,15 @@ public sealed class GetCurrentAccountUseCase(
     {
         if (string.IsNullOrWhiteSpace(staffId) || activeTenantId is null) return null;
 
-        var staff = await staffMembers.FindForSessionAsync(staffId, cancellationToken);
-        if (staff?.Branch is null) return null;
+        var scope = await staffMembers.FindBranchScopeForSessionAsync(staffId, cancellationToken);
+        if (scope is null) return null;
 
         // Phép đối chiếu BẮT BUỘC: hàm trên cố ý bỏ qua bộ lọc theo tiệm vì nó chạy trong
         // lúc phiên còn đang dựng. Không có dòng này thì một hồ sơ nhân viên của tiệm khác
         // sẽ lọt vào phiên, và tên chi nhánh của tiệm khác hiện lên đầu màn hình.
-        if (staff.TenantId != activeTenantId) return null;
+        if (scope.TenantId != activeTenantId) return null;
 
-        return new BranchScopeDto(staff.Branch.Id, staff.Branch.Code, staff.Branch.Name);
+        return new BranchScopeDto(scope.BranchId, scope.BranchCode, scope.BranchName);
     }
 
     /// <summary>
@@ -126,11 +128,9 @@ public sealed class GetCurrentAccountUseCase(
         var tenant = await tenants.FindByIdAsync(sessionTenantId, cancellationToken);
         if (tenant is null) return (null, null);
 
-        if (tenant.Package is null)
-            throw new InvalidOperationException(
-                $"Tiệm {tenant.Id} không đọc được gói đăng ký. Kho dữ liệu phải trả về tiệm kèm gói.");
+        var plan = await plans.AttachAsync(tenant, cancellationToken);
 
-        return (tenant.Id, TenantMapper.ToScope(tenant, tenant.Package, now));
+        return (tenant.Id, TenantMapper.ToScope(plan.Tenant, plan.Package, now));
     }
 
     /// <summary>

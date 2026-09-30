@@ -141,6 +141,32 @@ public sealed class SessionRevocationTests(SalonSysFactory factory)
     }
 
     /// <summary>
+    /// Phản hồi của lệnh thu hồi phải nói đúng phiên đó của AI — cùng tên, email, vai trò mà
+    /// danh sách vừa hiện. Bản cũ đọc phiên mà không nạp chủ phiên, nên dòng vừa thu hồi quay về
+    /// màn hình với tên là mã tài khoản và email rỗng.
+    /// </summary>
+    [Fact]
+    public async Task Phien_vua_thu_hoi_van_mang_dung_ten_chu_phien()
+    {
+        using var victim = await SalonSysClient.ReceptionistAsync(factory);
+        using var superadmin = await SalonSysClient.SuperAdminAsync(factory);
+
+        var listed = await superadmin.GetAsync("/api/sessions");
+        var target = Sessions(listed).First(session =>
+            Text(session, "userRole") == "RECEPTIONIST"
+            && Text(session, "status") == "ACTIVE");
+
+        var revoked = await superadmin.PostAsync($"/api/sessions/{Text(target, "id")}/revoke", new { });
+        var session = revoked.Body.GetProperty("session");
+
+        Assert.Equal(HttpStatusCode.OK, revoked.Status);
+        Assert.Equal(Text(target, "userDisplayName"), Text(session, "userDisplayName"));
+        Assert.Equal(Text(target, "userEmail"), Text(session, "userEmail"));
+        Assert.Equal("RECEPTIONIST", Text(session, "userRole"));
+        Assert.False(string.IsNullOrWhiteSpace(Text(session, "userEmail")));
+    }
+
+    /// <summary>
     /// BR-AUD-002 — thu hồi phiên để lại vết, và bằng sự kiện của riêng nó.
     /// <para>
     /// Không dùng lại <c>ACCOUNT_SUSPENDED</c> dù cả hai đều là "đá một người ra ngoài": khóa

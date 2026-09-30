@@ -8,6 +8,7 @@ public static class SalesInvoicesFeatureRegistration
     public static IServiceCollection AddSalesInvoicesFeature(this IServiceCollection services)
     {
         services.AddScoped<SalesInvoiceLineBuilder>();
+        services.AddScoped<SalesInvoiceReadService>();
         services.AddScoped<ListSalesInvoicesUseCase>();
         services.AddScoped<GetSalesInvoiceUseCase>();
         services.AddScoped<CreateSalesInvoiceUseCase>();

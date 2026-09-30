@@ -32,6 +32,7 @@ namespace NailManagement.Application.Features.SalesInvoices.UseCases;
 /// </summary>
 public sealed class RecordPaymentUseCase(
     ISalesInvoiceRepository invoices,
+    SalesInvoiceReadService reader,
     IAppointmentRepository appointments,
     IUnitOfWork unitOfWork,
     IAuditLogger audit,
@@ -111,7 +112,7 @@ public sealed class RecordPaymentUseCase(
             return line;
         }, cancellationToken);
 
-        return SalesInvoiceMapper.ToDto(invoice);
+        return await reader.DescribeAsync(invoice, cancellationToken);
     }
 
     /// <summary>

@@ -94,20 +94,17 @@ public sealed class SalesInvoiceRepository(NailDbContext db, ITenantContext tena
     }
 
     /// <summary>
-    /// Hình dạng chung của hai đường đọc: hóa đơn kèm dòng hàng, dòng thu tiền, chi nhánh, khách
-    /// và kỹ thuật viên.
+    /// Hình dạng chung của hai đường đọc: hóa đơn kèm dòng hàng và dòng thu tiền — hai bảng con
+    /// của chính aggregate này. Tên chi nhánh, khách và kỹ thuật viên thuộc về aggregate khác;
+    /// tầng Application đọc chúng theo lô qua <c>SalonDirectoryReader</c>.
     /// <para>
-    /// <c>AsSplitQuery</c> vì đây là <b>hai</b> phép nối một–nhiều lồng cùng ba phép nối một–một.
-    /// Gộp vào một câu thì mỗi hóa đơn bị nhân lên bằng số dòng hàng nhân số dòng thu tiền, và cả
-    /// hồ sơ khách lẫn hồ sơ nhân viên bị chép lại ở từng dòng của tích ấy.
+    /// <c>AsSplitQuery</c> vì đây là <b>hai</b> phép nối một–nhiều. Gộp vào một câu thì mỗi hóa
+    /// đơn bị nhân lên bằng số dòng hàng nhân số dòng thu tiền.
     /// </para>
     /// </summary>
     private IQueryable<SalesInvoice> Readable()
         => db.SalesInvoices
             .Include(invoice => invoice.Lines)
             .Include(invoice => invoice.Payments)
-            .Include(invoice => invoice.Branch)
-            .Include(invoice => invoice.Customer)
-            .Include(invoice => invoice.Staff)
             .AsSplitQuery();
 }
