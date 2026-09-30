@@ -3,8 +3,9 @@
 Backend của **SalonSys**, hệ thống SaaS đa tiệm quản lý chuỗi tiệm nail. ASP.NET Core 10 +
 EF Core + SQL Server 2022, tổ chức theo Clean Architecture với năm project.
 
-Giao diện nằm ở một repo khác: `C:\QLTiemNail_vs1` (React 19 + Vite). Máy chủ này không phục vụ
-tệp tĩnh; nó chỉ trả `/api`.
+Giao diện nằm ở một repo khác: `C:\QLTiemNail_vs1` (React 19 + Vite). Lúc phát triển, máy chủ này
+chỉ trả `/api` và Vite phục vụ giao diện; khi có bản build trong `wwwroot/` thì nó phục vụ luôn cả
+giao diện trên cùng một cổng (xem §1).
 
 | | |
 |---|---|
@@ -110,9 +111,9 @@ Bốn tiệm này **cố ý không có chi nhánh, nhân sự hay khách**. Chú
 BR-TENANT-001/002 (bốn trạng thái hiển thị) và BR-TENANT-010 (chặn ghi). Đừng mở chúng ra khi
 trình bày — mọi màn đều trống.
 
-> ⚠️ Ba mật khẩu trên nằm cứng trong mã nguồn và được nạp ở **mọi môi trường**. Đây là điểm
-> chặn triển khai production số 2 trong `BAO_CAO_PHAN_TICH_NAILMANAGEMENT.md`. Chấp nhận được
-> cho một đồ án chạy trên máy cá nhân; đừng mang nguyên như vậy ra máy chủ thật.
+> ⚠️ Các mật khẩu trên nằm cứng trong mã nguồn, nên chúng **chỉ được nạp ở Development** và chỉ
+> khi cờ `DemoSeed:Enabled` bật — `DemoSeedPolicy` bỏ qua cờ ấy ở mọi môi trường khác. Đừng bật
+> môi trường Development trên một máy chủ mà người ngoài truy cập được.
 
 ---
 
@@ -166,7 +167,7 @@ hoặc CONFIRMED và **không kèm hóa đơn nào**, nên báo cáo doanh thu k
 ## 4. Kiểm thử
 
 ```bash
-dotnet test        # 115 phép thử, ~16 giây
+dotnet test        # 136 phép thử, ~20 giây
 ```
 
 Bộ xUnit dựng máy chủ **trong bộ nhớ** qua `WebApplicationFactory` và chạy trên một database
@@ -179,7 +180,18 @@ trông như hỏng mã nguồn trong khi thật ra chỉ là hai tiến trình t
 
 Bố cục: `Infrastructure/` là bộ khung (client, factory, database tạm), `Scenarios/SalonScenario.cs`
 dựng dữ liệu nghiệp vụ dùng chung, và các lớp kiểm thử gom theo vùng luật — `Authorization/`,
-`Isolation/`, `Appointments/`, `Invoices/`, `Payments/`, `Sessions/`.
+`Isolation/`, `Appointments/`, `Invoices/`, `Payments/`, `Sessions/`, `Startup/`.
+
+Máy khác thì đặt biến `NAILMANAGEMENT_TEST_DB` để thay cả chuỗi kết nối của bộ kiểm thử — ví dụ
+SQL Server chạy trong Docker, nơi không có đăng nhập Windows:
+
+```bash
+NAILMANAGEMENT_TEST_DB="Server=localhost,1433;Database=NailManagementTests;User Id=sa;Password=...;TrustServerCertificate=True" dotnet test
+```
+
+CI trên GitHub Actions (`.github/workflows/ci.yml`) chạy đúng cách đó ở mỗi push và pull request:
+build Release, kiểm model khớp migration (`dotnet ef migrations has-pending-model-changes`), rồi
+chạy toàn bộ bộ kiểm thử trên một container SQL Server 2022.
 
 > `SalonScenario.NextSlot()` phải là **bộ đếm khung giờ duy nhất** của cả lần chạy. Mọi lớp kiểm
 > thử đều đặt lịch cho cùng một kỹ thuật viên, nên hai bộ đếm riêng sẽ đụng BR-APT-011 và làm lớp
@@ -197,19 +209,38 @@ thử, nên dựng lại database sau khi chạy.
 Chiều phụ thuộc chỉ đi **vào trong**; `Domain` không tham chiếu project nào.
 
 ```
-NailManagement.Domain          Entities · Enums · ValueObjects · Policies · Repositories (cổng)
-NailManagement.Application     Features (UseCases · DTO · Mapper · DI theo nghiệp vụ) · Abstractions · Common
-NailManagement.Infrastructure  Persistence (DbContext, Migrations, Seed, Repositories) · Security · Auditing
-NailManagement.API             Controllers · Middleware · Security · Program.cs
-NailManagement.Tests           xUnit chạy qua HTTP thật
+NailManagement.Domain          Theo aggregate: Salon/{Appointments, Invoices, Customers, …} · Platform/{Tenants, Packages, Subscriptions}
+                               · Auth · Auditing · Access · Shared · ValueObjects — mỗi thư mục chứa entity, enum, policy và cổng repository của nó
+NailManagement.Application     Features/<nghiệp vụ>/{UseCases, DTO, Mapper, ReadService, DI} · Abstractions · Common
+NailManagement.Infrastructure  Persistence/<cùng cây với Domain>/{Configuration, Repository} · Migrations · Seed · Security · Auditing
+NailManagement.API             Controllers · Middleware · Security · Startup · Program.cs
+NailManagement.Tests           xUnit chạy qua HTTP thật, trên SQL Server thật
 ```
 
 `AddApplication()` và `AddInfrastructure()` là **điểm ráp nối duy nhất** — API không biết use
 case cần gì, cũng không biết repository cài bằng gì.
 
-51 endpoint trên 14 controller: xác thực và phiên, tiệm, chi nhánh, dịch vụ, nhân sự, khách hàng,
-lịch hẹn, hóa đơn bán hàng và thu tiền, báo cáo doanh thu, nhật ký kiểm toán, quản trị phiên
-đăng nhập.
+51 endpoint nghiệp vụ trên 14 controller: xác thực và phiên, tiệm, chi nhánh, dịch vụ, nhân sự,
+khách hàng, lịch hẹn, hóa đơn bán hàng và thu tiền, báo cáo doanh thu, nhật ký kiểm toán, quản trị
+phiên đăng nhập — cộng hai endpoint sức khỏe ở §6.
+
+Thiết lập chung của cả solution nằm ở gốc repo: `Directory.Build.props` (net10.0, nullable, cảnh
+báo là lỗi), `Directory.Packages.props` (mỗi package **một** phiên bản cho cả năm project),
+`global.json` (SDK 10), `.editorconfig` và `.gitattributes`.
+
+### Giữa các aggregate chỉ tham chiếu bằng mã
+
+Lịch hẹn giữ `CustomerId`, `StaffId`, `BranchId` — **không** giữ thuộc tính điều hướng sang
+`Customer`, `Staff`, `Branch`. Tiệm giữ `PackageId`, không giữ `Package`. Khóa ngoại ở database vẫn
+nguyên (kể cả khóa ghép kèm cột tiệm); chỉ phía C# bỏ đường đi tắt từ aggregate này sang aggregate
+khác.
+
+- **Ghi:** một use case muốn sửa khách thì đọc khách qua `ICustomerRepository`, không "tiện tay"
+  sửa qua lịch hẹn.
+- **Đọc:** tên hiển thị được nối ở tầng Application. `SalonDirectoryReader` đọc chi nhánh, khách
+  và nhân viên của cả một danh sách bằng ba truy vấn; `SalesInvoiceReadService` và
+  `AppointmentReadService` ghép chúng vào DTO. `TenantPlanReader` làm việc tương tự cho tiệm + gói.
+- Tham chiếu ngược **trong cùng** một aggregate (dòng hóa đơn → hóa đơn) vẫn giữ.
 
 ### Chuỗi kiểm tra quyền — thứ tự không được đảo
 
@@ -234,16 +265,38 @@ cho ai cả**.
 | Khóa | Ở đâu | Mặc định |
 |---|---|---|
 | `ConnectionStrings:Default` | `NailManagement.API/appsettings.json` | `Server=localhost`, database `NailManagement` |
-| Chuỗi kết nối của bộ kiểm thử | `NailManagement.Tests/Infrastructure/SalonSysFactory.cs` | `Server=localhost`, database `NailManagementTests` |
+| Chuỗi kết nối của bộ kiểm thử | biến môi trường `NAILMANAGEMENT_TEST_DB` | `Server=localhost`, database `NailManagementTests` |
+| `Database:MigrateOnStartup` | `appsettings.*.json` hoặc biến `Database__MigrateOnStartup` | `true` ở Development, `false` ở nơi khác |
+| `DemoSeed:Enabled` | `appsettings.Development.json` | `true` — bị bỏ qua ngoài Development |
+| `Bootstrap:AdminEmail`, `Bootstrap:AdminPassword` | biến môi trường | trống — tài khoản quản trị đầu tiên ngoài Development |
+| `Auth:LoginRateLimit` | `appsettings.json` | 30 lần / 300 giây mỗi IP |
 | Cổng HTTP | `Properties/launchSettings.json`, hồ sơ `http` | `5282` |
 
-Chuỗi kết nối của bộ kiểm thử **nằm cứng trong mã nguồn, không đọc `appsettings`** — nó phải sẵn
-sàng trước cả khi host được dựng, lý do đầy đủ ở chú thích ngay trên hằng số ấy. Nghĩa là đổi máy
-chủ thì phải sửa **cả hai** chỗ, sửa một chỗ thì bộ kiểm thử vẫn nối vào máy chủ cũ.
+Chuỗi kết nối của bộ kiểm thử **không đọc `appsettings`** — nó phải sẵn sàng trước cả khi host được
+dựng, lý do đầy đủ ở chú thích trong `SalonSysFactory`. Đổi máy chủ thì đặt `NAILMANAGEMENT_TEST_DB`.
 
-Nhớ đọc lại hai điểm chặn production ở `BAO_CAO_PHAN_TICH_NAILMANAGEMENT.md` trước khi mang đi
-đâu: cookie phiên luôn `Secure = false`, và ứng dụng tự chạy migration + tự nạp tài khoản demo ở
-mọi môi trường.
+### Kiểm tra sức khỏe
+
+| Endpoint | Nghĩa | Chạm database |
+|---|---|---|
+| `GET /api/health` | **Sống** — tiến trình còn trả lời | Không |
+| `GET /api/health/ready` | **Sẵn sàng** — nối được database; `503` khi không | Có |
+
+Cả hai không cần đăng nhập, và không trả chi tiết lỗi ra ngoài.
+
+### Migration khi triển khai
+
+Ở Development máy chủ tự áp migration lúc khởi động. Ở mọi môi trường khác thì **không**: nhiều
+bản chạy song song sẽ tranh nhau sửa lược đồ, và tài khoản database của ứng dụng không nên có quyền
+DDL. Migration là một bước riêng, chạy một lần trước khi mở bản mới:
+
+```bash
+dotnet ef migrations bundle --project NailManagement.Infrastructure --startup-project NailManagement.API -o efbundle
+./efbundle --connection "<chuỗi kết nối production>"
+```
+
+Mở máy chủ khi database còn migration chưa áp thì nó **dừng ngay lúc khởi động** và liệt kê tên
+migration còn thiếu, thay vì hỏng ở request đầu tiên chạm vào cột mới.
 
 ### Collation — đọc trước khi đổi máy chủ
 

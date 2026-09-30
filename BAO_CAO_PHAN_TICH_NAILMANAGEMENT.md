@@ -8,6 +8,18 @@
 
 > Lưu ý: tại thời điểm đánh giá, working tree có thay đổi chưa commit liên quan đến chức năng liệt kê tài khoản quản trị tenant. Báo cáo phản ánh đúng trạng thái hiện có trên máy, không chỉ trạng thái của commit gần nhất. Không có tệp nguồn hiện hữu nào bị sửa trong quá trình đánh giá.
 
+> **Tình trạng tới 30/09/2026.** Báo cáo dưới đây giữ nguyên như lúc viết (25/08) để làm mốc so sánh. Từ đó đến nay:
+>
+> | Mục | Tình trạng |
+> |---|---|
+> | P0.1 — Cookie phiên `Secure = false` | **Đã xử lý.** `Secure` bật ở mọi môi trường trừ Development; có phép thử ở môi trường Staging. |
+> | P0.2 — Tài khoản demo nạp ở mọi môi trường | **Đã xử lý.** Chỉ nạp ở Development và khi cờ `DemoSeed:Enabled` bật; nơi khác dùng `Bootstrap:AdminEmail`/`AdminPassword`. |
+> | P1.1 — Tự migrate lúc khởi động ở mọi môi trường | **Đã xử lý.** Chỉ tự migrate ở Development (`Database:MigrateOnStartup`); nơi khác dừng ngay nếu còn migration chưa áp. |
+> | Thiếu rate limit đăng nhập | **Đã xử lý.** Giới hạn theo IP cộng khóa tạm theo tài khoản. |
+> | Chưa có test project, CI | **Đã xử lý.** 136 phép thử tích hợp trên SQL Server thật; GitHub Actions chạy build, kiểm model–migration và toàn bộ phép thử. |
+> | Thiếu README vận hành | **Đã xử lý.** `README.md` §1–§6. |
+> | Các miền cốt lõi chưa có use case | **Đã xử lý.** Nhân viên, dịch vụ, khách hàng, lịch hẹn, hóa đơn, thu tiền, báo cáo doanh thu đều đã có API. |
+
 ---
 
 ## 1. Kết luận điều hành
