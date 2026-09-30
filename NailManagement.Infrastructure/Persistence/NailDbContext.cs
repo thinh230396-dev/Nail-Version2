@@ -73,6 +73,30 @@ public class NailDbContext(DbContextOptions<NailDbContext> options, ITenantConte
     /// </summary>
     private string? ActiveTenantId => tenantContext.ActiveTenantId;
 
+    /// <summary>
+    /// Lưu, và dịch vi phạm chỉ mục duy nhất thành lỗi 422 gắn đúng ô — xem
+    /// <see cref="UniqueConstraintTranslator"/>. Mọi repository đều lưu qua hàm này, nên không đường
+    /// ghi nào phải tự nhớ bắt lỗi ấy.
+    /// </summary>
+    public override async Task<int> SaveChangesAsync(
+        bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+        }
+        catch (DbUpdateException exception)
+        {
+            var translated = UniqueConstraintTranslator.TryTranslate(exception, Model);
+
+            // Không dịch được thì ném lại nguyên lỗi gốc, giữ stack trace: vi phạm ngoài bảng dịch
+            // là lỗi thật và phải hiện trong log như một lỗi 500.
+            if (translated is null) throw;
+
+            throw translated;
+        }
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
