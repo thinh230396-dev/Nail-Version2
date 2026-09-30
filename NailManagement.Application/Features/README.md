@@ -18,7 +18,7 @@ Features/<Feature>/
 4. Đăng ký use case/helper bằng `Add<Feature>Feature()` trong `DependencyInjection.cs` của feature; gọi một lần từ `AddApplication()`.
 5. Controller ánh xạ HTTP request sang input của use case. Không đưa HTTP request type hoặc `DbContext` vào Application.
 6. Nếu thêm interface hoặc migration, triển khai ở Infrastructure. Luồng ghi nhiều entity cần xác định ranh giới giao dịch và cách xử lý audit lỗi.
-7. Kiểm tra hành vi thay đổi bằng test có ý nghĩa; ghi thay đổi contract và cập nhật `README-SCALE-ROADMAP.md`.
+7. Kiểm tra hành vi thay đổi bằng test có ý nghĩa; ghi thay đổi contract và cấu hình vào `README.md` ở gốc repo.
 
 ## Phụ thuộc cần giữ
 
