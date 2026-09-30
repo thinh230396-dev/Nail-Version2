@@ -23,6 +23,7 @@ namespace NailManagement.Application.Features.Appointments.UseCases;
 public sealed class UpdateAppointmentUseCase(
     IAppointmentRepository appointments,
     AppointmentBookingGuard guard,
+    IUnitOfWork unitOfWork,
     IIdGenerator ids,
     IClock clock)
 {
@@ -57,28 +58,32 @@ public sealed class UpdateAppointmentUseCase(
         var end = command.StartAt.AddMinutes(AppointmentSchedulePolicy.TotalMinutes(
             services.Select(service => (service.DurationMinutes, service.BufferMinutes))));
 
-        var warnings = await guard.EnsureSlotAvailableAsync(
-            staff, command.StartAt, end, appointment.Id, now, cancellationToken);
+        // Kiểm trùng và ghi trong cùng một giao dịch — xem CreateAppointmentUseCase.
+        return await unitOfWork.ExecuteInTransactionAsync(async ct =>
+        {
+            var warnings = await guard.EnsureSlotAvailableAsync(
+                staff, command.StartAt, end, appointment.Id, now, ct);
 
-        // Chi nhánh đi theo kỹ thuật viên, giống hệt lúc đặt mới (BR-EMP-003). Đổi người làm
-        // sang chi nhánh khác là chuyển luôn lịch hẹn sang chi nhánh đó — và với lễ tân thì
-        // không xảy ra được, vì AppointmentBookingGuard đã chặn ở bước chọn người.
-        appointment.Revise(
-            staff.BranchId,
-            customer.Id,
-            staff.Id,
-            command.StartAt,
-            services,
-            AppointmentMapper.ParseSource(command.Source),
-            command.Station,
-            command.Note,
-            command.Deposit,
-            now,
-            () => ids.NewId("APS"));
+            // Chi nhánh đi theo kỹ thuật viên, giống hệt lúc đặt mới (BR-EMP-003). Đổi người làm
+            // sang chi nhánh khác là chuyển luôn lịch hẹn sang chi nhánh đó — và với lễ tân thì
+            // không xảy ra được, vì AppointmentBookingGuard đã chặn ở bước chọn người.
+            appointment.Revise(
+                staff.BranchId,
+                customer.Id,
+                staff.Id,
+                command.StartAt,
+                services,
+                AppointmentMapper.ParseSource(command.Source),
+                command.Station,
+                command.Note,
+                command.Deposit,
+                now,
+                () => ids.NewId("APS"));
 
-        await appointments.UpdateAsync(appointment, cancellationToken);
+            await appointments.UpdateAsync(appointment, ct);
 
-        return new AppointmentSaveResult(
-            AppointmentMapper.ToDto(appointment, customer, staff, now), warnings);
+            return new AppointmentSaveResult(
+                AppointmentMapper.ToDto(appointment, customer, staff, now), warnings);
+        }, cancellationToken);
     }
 }

@@ -26,6 +26,7 @@ namespace NailManagement.Application.Features.Appointments.UseCases;
 public sealed class CreateAppointmentUseCase(
     IAppointmentRepository appointments,
     AppointmentBookingGuard guard,
+    IUnitOfWork unitOfWork,
     ITenantContext tenantContext,
     IIdGenerator ids,
     IClock clock)
@@ -50,34 +51,40 @@ public sealed class CreateAppointmentUseCase(
         var end = command.StartAt.AddMinutes(AppointmentSchedulePolicy.TotalMinutes(
             services.Select(service => (service.DurationMinutes, service.BufferMinutes))));
 
-        // BR-APT-011 — chặn cứng. Giữa phép kiểm này và lệnh ghi bên dưới vẫn còn một khe hở
-        // lý thuyết cho hai request đặt cùng giờ cho cùng một người trong cùng một khoảnh khắc.
-        // Không xử lý bằng khóa hay mức cô lập chặt hơn là quyết định có chủ đích: một tiệm có
-        // một quầy lễ tân, và §9.4 đã loại mọi hạ tầng đồng thời khỏi phạm vi MVP.
-        var warnings = await guard.EnsureSlotAvailableAsync(
-            staff, command.StartAt, end, null, now, cancellationToken);
+        // BR-APT-011 — chặn cứng, trong CÙNG giao dịch với lệnh ghi. Guard khóa lịch của kỹ thuật
+        // viên trước khi kiểm, và khóa chỉ nhả khi giao dịch này kết thúc — lúc lịch mới đã nằm
+        // trong bảng. Nhiều quầy đặt cùng người cùng giờ thì chỉ quầy đầu tiên qua được.
+        //
+        // (Bản MVP cố ý bỏ khóa, với lý do "một tiệm một quầy lễ tân". Nhiều chi nhánh, nhiều
+        // lễ tân và nguồn đặt lịch ONLINE làm lý do ấy không còn đứng vững — phép thử
+        // DoubleBookingTests từng thấy sáu quầy cùng đặt thành công một khung giờ.)
+        return await unitOfWork.ExecuteInTransactionAsync(async ct =>
+        {
+            var warnings = await guard.EnsureSlotAvailableAsync(
+                staff, command.StartAt, end, null, now, ct);
 
-        var appointment = AppointmentEntity.Create(
-            ids.NewId("APT"),
-            tenantId,
-            staff.BranchId,
-            customer.Id,
-            staff.Id,
-            command.StartAt,
-            services,
-            AppointmentMapper.ParseInitialStatus(command.Status),
-            AppointmentMapper.ParseSource(command.Source),
-            command.Station,
-            command.Note,
-            command.Deposit,
-            actor.UserId,
-            now);
+            var appointment = AppointmentEntity.Create(
+                ids.NewId("APT"),
+                tenantId,
+                staff.BranchId,
+                customer.Id,
+                staff.Id,
+                command.StartAt,
+                services,
+                AppointmentMapper.ParseInitialStatus(command.Status),
+                AppointmentMapper.ParseSource(command.Source),
+                command.Station,
+                command.Note,
+                command.Deposit,
+                actor.UserId,
+                now);
 
-        await appointments.AddAsync(appointment, cancellationToken);
+            await appointments.AddAsync(appointment, ct);
 
-        // Dựng DTO từ hai bản ghi đã nạp sẵn ở trên thay vì đọc lại lịch hẹn vừa ghi: một câu
-        // truy vấn nữa chỉ để lấy lại đúng những thứ đang nằm trong tay.
-        return new AppointmentSaveResult(
-            AppointmentMapper.ToDto(appointment, customer, staff, now), warnings);
+            // Dựng DTO từ hai bản ghi đã nạp sẵn ở trên thay vì đọc lại lịch hẹn vừa ghi: một câu
+            // truy vấn nữa chỉ để lấy lại đúng những thứ đang nằm trong tay.
+            return new AppointmentSaveResult(
+                AppointmentMapper.ToDto(appointment, customer, staff, now), warnings);
+        }, cancellationToken);
     }
 }

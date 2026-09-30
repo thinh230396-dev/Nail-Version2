@@ -1,4 +1,5 @@
 using System.Globalization;
+using NailManagement.Application.Abstractions;
 using NailManagement.Application.Common;
 using NailManagement.Application.Common.Exceptions;
 using NailManagement.Domain.Salon.Appointments;
@@ -31,7 +32,8 @@ public sealed class AppointmentBookingGuard(
     ICustomerRepository customers,
     IStaffRepository staffMembers,
     IServiceRepository services,
-    IBranchRepository branches)
+    IBranchRepository branches,
+    IStaffScheduleLock scheduleLock)
 {
     /// <summary>
     /// Định dạng giờ trong thông báo trùng lịch. Đọc theo giờ ghi trên chính bản ghi — thứ mà
@@ -155,6 +157,11 @@ public sealed class AppointmentBookingGuard(
     /// quan trọng — chặn trước, cảnh báo sau: không có lý do gì phải dựng câu cảnh báo cho một
     /// lịch hẹn sắp bị từ chối.
     /// </para>
+    /// <para>
+    /// ⚠️ Phải gọi <b>bên trong</b> <c>IUnitOfWork</c>, và lệnh ghi lịch hẹn phải nằm trong cùng giao
+    /// dịch ấy: hàm này khóa lịch của kỹ thuật viên trước khi kiểm, và khóa chỉ được nhả khi giao
+    /// dịch kết thúc — tức là sau khi lịch mới đã nằm trong bảng. Gọi ngoài giao dịch thì ném lỗi.
+    /// </para>
     /// </summary>
     /// <param name="exceptAppointmentId">Chính lịch hẹn đang sửa hoặc đang dời, để nó không tự trùng giờ với mình.</param>
     public async Task<IReadOnlyList<AppointmentWarning>> EnsureSlotAvailableAsync(
@@ -165,6 +172,10 @@ public sealed class AppointmentBookingGuard(
         DateTimeOffset now,
         CancellationToken cancellationToken = default)
     {
+        // Xếp hàng theo từng kỹ thuật viên TRƯỚC khi nhìn lịch. Kiểm trước rồi mới khóa thì hai
+        // quầy vẫn cùng thấy khung giờ trống.
+        await scheduleLock.AcquireAsync(staff.Id, cancellationToken);
+
         var blocking = await appointments.FindBlockingAsync(
             staff.Id, start, end, exceptAppointmentId, cancellationToken);
 

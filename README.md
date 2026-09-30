@@ -167,7 +167,7 @@ hoặc CONFIRMED và **không kèm hóa đơn nào**, nên báo cáo doanh thu k
 ## 4. Kiểm thử
 
 ```bash
-dotnet test                              # cả hai project: 202 phép thử, ~20 giây
+dotnet test                              # cả hai project: 203 phép thử, ~20 giây
 dotnet test NailManagement.UnitTests     # chỉ luật Domain: 59 phép thử, dưới 1 giây, không cần SQL Server
 ```
 
@@ -175,7 +175,7 @@ Hai tầng, hai mục đích:
 
 - **`NailManagement.UnitTests`** — công thức tiền, trạng thái hóa đơn, vòng đời lịch hẹn, hạng khách,
   chuẩn hóa số điện thoại và email. Chỉ tham chiếu Domain; chạy được ở bất kỳ máy nào.
-- **`NailManagement.Tests`** — 143 phép thử đi trọn đường ống HTTP trên SQL Server thật: phân quyền,
+- **`NailManagement.Tests`** — 144 phép thử đi trọn đường ống HTTP trên SQL Server thật: phân quyền,
   cách ly tiệm, giao dịch, tranh chấp ghi.
 
 Bộ tích hợp dựng máy chủ **trong bộ nhớ** qua `WebApplicationFactory` và chạy trên một database

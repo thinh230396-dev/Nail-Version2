@@ -96,6 +96,9 @@ public static class DependencyInjection
         // mà các repository đang ghi, và khi đó nó không gom được gì cả.
         services.AddScoped<IUnitOfWork, EfUnitOfWork>();
 
+        // BR-APT-011 — khóa lịch từng kỹ thuật viên trong lúc kiểm trùng rồi ghi.
+        services.AddScoped<IStaffScheduleLock, SqlStaffScheduleLock>();
+
         // Kiểm tra sẵn sàng: máy chủ chỉ nhận lưu lượng khi nối được database. Gắn nhãn "ready"
         // để phân biệt với kiểm tra sống — tiến trình còn chạy nhưng database tạm mất thì nên
         // rút khỏi bộ cân bằng tải, không nên bị khởi động lại.

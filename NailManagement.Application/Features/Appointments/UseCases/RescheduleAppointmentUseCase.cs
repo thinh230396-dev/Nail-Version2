@@ -23,6 +23,7 @@ namespace NailManagement.Application.Features.Appointments.UseCases;
 public sealed class RescheduleAppointmentUseCase(
     IAppointmentRepository appointments,
     AppointmentBookingGuard guard,
+    IUnitOfWork unitOfWork,
     IStaffRepository staffMembers,
     AppointmentReadService reader,
     IClock clock)
@@ -55,12 +56,18 @@ public sealed class RescheduleAppointmentUseCase(
         // vẫn đúng bằng khoảng cũ (BR-APT-010).
         var end = command.StartAt.AddMinutes(appointment.TotalMinutes());
 
-        var warnings = await guard.EnsureSlotAvailableAsync(
-            staff, command.StartAt, end, appointment.Id, now, cancellationToken);
+        // Kiểm trùng và ghi trong cùng một giao dịch — xem CreateAppointmentUseCase.
+        var warnings = await unitOfWork.ExecuteInTransactionAsync(async ct =>
+        {
+            var found = await guard.EnsureSlotAvailableAsync(
+                staff, command.StartAt, end, appointment.Id, now, ct);
 
-        appointment.Reschedule(command.StartAt, now);
+            appointment.Reschedule(command.StartAt, now);
 
-        await appointments.UpdateAsync(appointment, cancellationToken);
+            await appointments.UpdateAsync(appointment, ct);
+
+            return found;
+        }, cancellationToken);
 
         return new AppointmentSaveResult(
             await reader.DescribeAsync(appointment, now, cancellationToken), warnings);
