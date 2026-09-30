@@ -33,7 +33,7 @@ public sealed class AppointmentBookingGuard(
     IStaffRepository staffMembers,
     IServiceRepository services,
     IBranchRepository branches,
-    IStaffScheduleLock scheduleLock)
+    ITransactionLock locks)
 {
     /// <summary>
     /// Định dạng giờ trong thông báo trùng lịch. Đọc theo giờ ghi trên chính bản ghi — thứ mà
@@ -174,7 +174,11 @@ public sealed class AppointmentBookingGuard(
     {
         // Xếp hàng theo từng kỹ thuật viên TRƯỚC khi nhìn lịch. Kiểm trước rồi mới khóa thì hai
         // quầy vẫn cùng thấy khung giờ trống.
-        await scheduleLock.AcquireAsync(staff.Id, cancellationToken);
+        if (!await locks.TryAcquireAsync($"staff-schedule:{staff.Id}", cancellationToken))
+        {
+            throw new SlotConflictException(
+                $"Lịch của {staff.FullName} đang được một quầy khác cập nhật. Vui lòng thử lại sau giây lát.");
+        }
 
         var blocking = await appointments.FindBlockingAsync(
             staff.Id, start, end, exceptAppointmentId, cancellationToken);

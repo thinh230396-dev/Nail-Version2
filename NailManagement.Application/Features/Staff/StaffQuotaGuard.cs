@@ -1,3 +1,4 @@
+using NailManagement.Application.Abstractions;
 using NailManagement.Application.Common.Exceptions;
 using NailManagement.Application.Common;
 using NailManagement.Domain.Salon.StaffMembers;
@@ -17,10 +18,14 @@ namespace NailManagement.Application.Features.Staff;
 /// Đếm <i>tại thời điểm thao tác</i> chứ không lưu sẵn một con số: lưu sẵn thì con số đó
 /// lệch ngay lần đầu có ai nghỉ việc.
 /// </para>
+/// <para>
+/// ⚠️ Phải gọi bên trong <c>IUnitOfWork</c>, cùng giao dịch với lệnh ghi nhân viên.
+/// </para>
 /// </summary>
 public sealed class StaffQuotaGuard(
     IStaffRepository staffMembers,
-    TenantPlanReader plans)
+    TenantPlanReader plans,
+    ITransactionLock locks)
 {
     /// <param name="isReactivating">
     /// Chỉ đổi câu chữ của thông báo, không đổi phép kiểm. Người đang thêm nhân viên mới
@@ -30,6 +35,10 @@ public sealed class StaffQuotaGuard(
     public async Task EnsureRoomForOneMoreAsync(
         string tenantId, bool isReactivating, CancellationToken cancellationToken = default)
     {
+        // Khóa hạn mức của tiệm trước khi đếm — xem BranchQuotaGuard.
+        if (!await locks.TryAcquireAsync($"quota:staff:{tenantId}", cancellationToken))
+            throw new LimitExceededException("Tiệm đang có thao tác khác trên hồ sơ nhân viên. Vui lòng thử lại sau giây lát.");
+
         var plan = await plans.GetAsync(tenantId, cancellationToken);
 
         var activeCount = await staffMembers.CountActiveAsync(cancellationToken);

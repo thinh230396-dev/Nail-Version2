@@ -26,6 +26,7 @@ public sealed class CreateStaffUseCase(
     IStaffRepository staffMembers,
     IBranchRepository branches,
     StaffQuotaGuard quota,
+    IUnitOfWork unitOfWork,
     ITenantContext tenantContext,
     IIdGenerator ids,
     IClock clock)
@@ -48,8 +49,8 @@ public sealed class CreateStaffUseCase(
         var shiftStart = StaffMapper.ParseShift(command.ShiftStart, "shiftStart", "Giờ bắt đầu ca");
         var shiftEnd = StaffMapper.ParseShift(command.ShiftEnd, "shiftEnd", "Giờ kết thúc ca");
 
-        await quota.EnsureRoomForOneMoreAsync(tenantId, isReactivating: false, cancellationToken);
-
+        // Dựng hồ sơ — tức kiểm dữ liệu nhập — TRƯỚC khi xin khóa hạn mức, để một ô nhập sai không
+        // giữ chân mọi thao tác nhân sự khác của tiệm trong lúc chờ.
         var staff = StaffEntity.Create(
             ids.NewId("STF"),
             tenantId,
@@ -64,7 +65,13 @@ public sealed class CreateStaffUseCase(
             StaffMapper.ToSkillsJson(command.Skills),
             now);
 
-        await staffMembers.AddAsync(staff, cancellationToken);
+        // Đếm hạn mức và ghi trong cùng một giao dịch — xem StaffQuotaGuard.
+        await unitOfWork.ExecuteInTransactionAsync(async ct =>
+        {
+            await quota.EnsureRoomForOneMoreAsync(tenantId, isReactivating: false, ct);
+            await staffMembers.AddAsync(staff, ct);
+            return true;
+        }, cancellationToken);
 
         // Hồ sơ vừa tạo chắc chắn chưa có tài khoản đăng nhập, nên không cần một lượt tra nữa.
         return StaffMapper.ToDto(staff, null);

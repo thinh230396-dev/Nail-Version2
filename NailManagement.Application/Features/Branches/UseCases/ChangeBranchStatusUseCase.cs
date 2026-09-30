@@ -30,6 +30,7 @@ namespace NailManagement.Application.Features.Branches.UseCases;
 public sealed class ChangeBranchStatusUseCase(
     IBranchRepository branches,
     BranchQuotaGuard quota,
+    IUnitOfWork unitOfWork,
     ITenantContext tenantContext,
     IClock clock)
 {
@@ -49,25 +50,30 @@ public sealed class ChangeBranchStatusUseCase(
         var branch = await branches.FindByIdAsync(command.BranchId ?? string.Empty, cancellationToken)
             ?? throw new NotFoundException("Không tìm thấy chi nhánh.");
 
-        if (status == BranchStatus.Inactive)
+        // Đếm hạn mức và ghi trong cùng một giao dịch — xem BranchQuotaGuard.
+        await unitOfWork.ExecuteInTransactionAsync(async ct =>
         {
-            branch.Deactivate(now);
-        }
-        else
-        {
-            // Chỉ kiểm khi đây thật sự là một lần BẬT LẠI. Gửi ACTIVE cho chi nhánh vốn đã
-            // hoạt động là thao tác không đổi gì, mà phép đếm khi đó lại tính cả chính nó —
-            // tiệm đang dùng vừa đủ hạn mức sẽ bị từ chối một việc họ không hề làm.
-            if (branch.Status != BranchStatus.Active)
-                await quota.EnsureRoomForOneMoreAsync(
-                    tenantContext.ActiveTenantId ?? throw new TenantNotSelectedException(),
-                    isReactivating: true,
-                    cancellationToken);
+            if (status == BranchStatus.Inactive)
+            {
+                branch.Deactivate(now);
+            }
+            else
+            {
+                // Chỉ kiểm khi đây thật sự là một lần BẬT LẠI. Gửi ACTIVE cho chi nhánh vốn đã
+                // hoạt động là thao tác không đổi gì, mà phép đếm khi đó lại tính cả chính nó —
+                // tiệm đang dùng vừa đủ hạn mức sẽ bị từ chối một việc họ không hề làm.
+                if (branch.Status != BranchStatus.Active)
+                    await quota.EnsureRoomForOneMoreAsync(
+                        tenantContext.ActiveTenantId ?? throw new TenantNotSelectedException(),
+                        isReactivating: true,
+                        ct);
 
-            branch.Activate(now);
-        }
+                branch.Activate(now);
+            }
 
-        await branches.UpdateAsync(branch, cancellationToken);
+            await branches.UpdateAsync(branch, ct);
+            return true;
+        }, cancellationToken);
 
         return BranchMapper.ToDto(branch);
     }

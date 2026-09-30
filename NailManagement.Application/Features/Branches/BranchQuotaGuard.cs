@@ -1,3 +1,4 @@
+using NailManagement.Application.Abstractions;
 using NailManagement.Application.Common;
 using NailManagement.Application.Common.Exceptions;
 using NailManagement.Domain.Salon.Branches;
@@ -17,8 +18,14 @@ namespace NailManagement.Application.Features.Branches;
 /// BR-BRANCH-004 cho chi nhánh đã ngừng ở lại trong dữ liệu để lịch hẹn và hóa đơn cũ vẫn đọc
 /// đúng tên, và giữ chỗ hạn mức cho chúng là phạt tiệm vì đã đóng cửa một điểm.
 /// </para>
+/// <para>
+/// ⚠️ Phải gọi bên trong <c>IUnitOfWork</c>, cùng giao dịch với lệnh ghi chi nhánh.
+/// </para>
 /// </summary>
-public sealed class BranchQuotaGuard(IBranchRepository branches, TenantPlanReader plans)
+public sealed class BranchQuotaGuard(
+    IBranchRepository branches,
+    TenantPlanReader plans,
+    ITransactionLock locks)
 {
     /// <param name="isReactivating">
     /// Chỉ đổi câu chữ của thông báo: người bật lại một chi nhánh cũ còn một lựa chọn nữa là
@@ -27,6 +34,11 @@ public sealed class BranchQuotaGuard(IBranchRepository branches, TenantPlanReade
     public async Task EnsureRoomForOneMoreAsync(
         string tenantId, bool isReactivating, CancellationToken cancellationToken = default)
     {
+        // Đếm rồi mới ghi là hai bước: khóa hạn mức của tiệm trước khi đếm, và giữ tới khi chi nhánh
+        // mới đã nằm trong bảng. Không khóa thì sáu lệnh tạo cùng lúc cùng đếm thấy còn chỗ.
+        if (!await locks.TryAcquireAsync($"quota:branches:{tenantId}", cancellationToken))
+            throw new LimitExceededException("Tiệm đang có thao tác khác trên chi nhánh. Vui lòng thử lại sau giây lát.");
+
         var plan = await plans.GetAsync(tenantId, cancellationToken);
 
         var activeCount = await branches.CountActiveAsync(cancellationToken);

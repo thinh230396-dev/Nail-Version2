@@ -55,11 +55,7 @@ public sealed class ChangeStaffStatusUseCase(
         // Chỉ kiểm hạn mức khi đây thật sự là một lần NHẬN LẠI. Gửi WORKING cho người vốn
         // đang đi làm là thao tác không đổi gì, mà phép đếm khi đó lại tính cả chính họ —
         // tiệm đang dùng vừa đủ hạn mức sẽ bị từ chối một việc họ không hề làm.
-        if (status != StaffStatus.Inactive && staff.Status == StaffStatus.Inactive)
-        {
-            var tenantId = tenantContext.ActiveTenantId ?? throw new TenantNotSelectedException();
-            await quota.EnsureRoomForOneMoreAsync(tenantId, isReactivating: true, cancellationToken);
-        }
+        var reactivates = status != StaffStatus.Inactive && staff.Status == StaffStatus.Inactive;
 
         // Tài khoản chỉ bị đụng tới khi đây là một lần nghỉ việc THẬT. Gửi INACTIVE cho hồ
         // sơ vốn đã nghỉ không nên vô hiệu hóa lại một tài khoản mà ai đó vừa cố ý cấp lại.
@@ -70,6 +66,13 @@ public sealed class ChangeStaffStatusUseCase(
 
         await unitOfWork.ExecuteInTransactionAsync(async ct =>
         {
+            // Kiểm hạn mức TRONG giao dịch, cùng lệnh ghi — xem StaffQuotaGuard.
+            if (reactivates)
+            {
+                var tenantId = tenantContext.ActiveTenantId ?? throw new TenantNotSelectedException();
+                await quota.EnsureRoomForOneMoreAsync(tenantId, isReactivating: true, ct);
+            }
+
             staff.ChangeStatus(status, now);
             await staffMembers.UpdateAsync(staff, ct);
 

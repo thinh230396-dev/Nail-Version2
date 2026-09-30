@@ -22,6 +22,7 @@ namespace NailManagement.Application.Features.Branches.UseCases;
 public sealed class CreateBranchUseCase(
     IBranchRepository branches,
     BranchQuotaGuard quota,
+    IUnitOfWork unitOfWork,
     ITenantContext tenantContext,
     IIdGenerator ids,
     IClock clock)
@@ -41,8 +42,7 @@ public sealed class CreateBranchUseCase(
         if (await branches.NameExistsAsync(name, null, cancellationToken))
             throw DomainException.ForField("name", $"Tiệm đã có chi nhánh tên {name}.");
 
-        await quota.EnsureRoomForOneMoreAsync(tenantId, isReactivating: false, cancellationToken);
-
+        // Dựng chi nhánh — tức kiểm dữ liệu nhập — trước khi xin khóa hạn mức.
         var branch = Branch.Create(
             ids.NewId("BRN"),
             tenantId,
@@ -53,7 +53,13 @@ public sealed class CreateBranchUseCase(
             isPrimary: false,
             now);
 
-        await branches.AddAsync(branch, cancellationToken);
+        // Đếm hạn mức và ghi trong cùng một giao dịch — xem BranchQuotaGuard.
+        await unitOfWork.ExecuteInTransactionAsync(async ct =>
+        {
+            await quota.EnsureRoomForOneMoreAsync(tenantId, isReactivating: false, ct);
+            await branches.AddAsync(branch, ct);
+            return true;
+        }, cancellationToken);
 
         return BranchMapper.ToDto(branch);
     }
