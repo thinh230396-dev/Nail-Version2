@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Phép thử của riêng tầng Domain: không database, không máy chủ, không mạng. Chạy dưới một
+    giây, nên CI chạy nó trước và dừng sớm khi một luật nghiệp vụ gãy — không phải chờ dựng
+    SQL Server mới biết công thức tiền sai.
+  -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NailManagement.Domain\NailManagement.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -8,6 +8,7 @@
 .vs/
 .claude/
 NailManagement.Tests/
+NailManagement.UnitTests/
 
 # Giao diện dựng sẵn là bản sao đông cứng từ repo khác (npm run build:server). Để nó lọt vào ảnh
 # thì ảnh phụ thuộc vào máy nào build — ảnh phải giống nhau dù build ở đâu.

@@ -48,6 +48,11 @@ jobs:
       - name: Build
         run: dotnet build --no-restore --configuration Release
 
+      # Luật nghiệp vụ trước: dưới một giây, không cần database. Gãy ở đây thì khỏi chờ bộ
+      # kiểm thử tích hợp.
+      - name: Kiểm thử Domain
+        run: dotnet test NailManagement.UnitTests --no-build --configuration Release
+
       - name: Kiểm tra model khớp migration
         run: |
           dotnet tool install --global dotnet-ef
@@ -56,9 +61,9 @@ jobs:
             --startup-project NailManagement.API \
             --configuration Release --no-build
 
-      - name: Test
+      - name: Kiểm thử tích hợp
         run: >-
-          dotnet test --no-build --configuration Release
+          dotnet test NailManagement.Tests --no-build --configuration Release
           --logger "trx;LogFileName=results.trx"
           --collect:"XPlat Code Coverage"
 

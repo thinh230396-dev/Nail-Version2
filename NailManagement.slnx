@@ -4,4 +4,5 @@
   <Project Path="NailManagement.Domain/NailManagement.Domain.csproj" />
   <Project Path="NailManagement.Infrastructure/NailManagement.Infrastructure.csproj" />
   <Project Path="NailManagement.Tests/NailManagement.Tests.csproj" />
+  <Project Path="NailManagement.UnitTests/NailManagement.UnitTests.csproj" />
 </Solution>
