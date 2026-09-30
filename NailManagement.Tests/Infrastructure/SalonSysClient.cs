@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing.Handlers;
 using NailManagement.Domain.Shared;
+using NailManagement.Infrastructure.Persistence.Seed;
 
 namespace NailManagement.Tests.Infrastructure;
 

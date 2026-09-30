@@ -1,6 +1,5 @@
 using NailManagement.Domain.Salon.Invoices;
 
-
 namespace NailManagement.Domain.Platform.Subscriptions;
 
 /// <summary>

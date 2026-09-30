@@ -3,6 +3,7 @@ using NailManagement.Application.Features.Reports;
 using NailManagement.Application.Features.Reports.UseCases;
 using NailManagement.Domain.Salon.Invoices;
 using NailManagement.Domain.Salon.Revenue;
+using NailManagement.Infrastructure.Persistence.Salon.Revenue;
 
 namespace NailManagement.Tests.Reports;
 

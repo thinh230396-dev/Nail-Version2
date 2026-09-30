@@ -8,6 +8,7 @@ using NailManagement.Application;
 using NailManagement.Domain.Access;
 using NailManagement.Domain.Shared;
 using NailManagement.Infrastructure;
+using NailManagement.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 

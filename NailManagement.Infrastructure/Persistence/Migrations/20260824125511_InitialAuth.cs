@@ -1,5 +1,3 @@
-using NailManagement.Domain.ValueObjects;
-
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 

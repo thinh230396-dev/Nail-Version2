@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using NailManagement.Domain.Auth;
+using NailManagement.Infrastructure.Persistence;
 using NailManagement.Tests.Infrastructure;
 
 namespace NailManagement.Tests.Concurrency;

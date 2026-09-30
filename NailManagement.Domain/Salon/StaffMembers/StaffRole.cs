@@ -1,6 +1,5 @@
 using NailManagement.Domain.Access;
 
-
 namespace NailManagement.Domain.Salon.StaffMembers;
 
 /// <summary>

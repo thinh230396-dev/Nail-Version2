@@ -1,5 +1,3 @@
-using NailManagement.Domain.Salon.StaffMembers;
-
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable

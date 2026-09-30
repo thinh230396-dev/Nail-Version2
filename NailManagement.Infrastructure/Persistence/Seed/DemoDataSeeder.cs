@@ -13,6 +13,7 @@ using NailManagement.Domain.Salon.Invoices;
 using NailManagement.Domain.Salon.Services;
 using NailManagement.Domain.Salon.StaffMembers;
 using NailManagement.Domain.ValueObjects;
+using NailManagement.Infrastructure.Persistence;
 
 namespace NailManagement.Infrastructure.Persistence.Seed;
 

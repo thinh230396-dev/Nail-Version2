@@ -1,5 +1,7 @@
 using System.Net;
 using System.Text.Json;
+using NailManagement.Infrastructure.Persistence.Salon.Services;
+using NailManagement.Infrastructure.Persistence.Seed;
 using NailManagement.Tests.Infrastructure;
 
 namespace NailManagement.Tests.Scenarios;

@@ -1,3 +1,4 @@
+
 namespace NailManagement.Domain.Shared;
 
 /// <summary>
